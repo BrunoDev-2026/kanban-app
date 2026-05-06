@@ -1,0 +1,112 @@
+{
+  "version": "2.0",
+  "description": "Dados de exemplo para o MB FlowBoard",
+  "profile": {
+    "name": "Bruno David",
+    "color": "#6C63FF",
+    "focusTime": 25,
+    "breakTime": 5
+  },
+  "columns": [
+    {
+      "id": "col_todo",
+      "title": "A Fazer",
+      "color": "#6C63FF",
+      "limit": 0,
+      "cards": [
+        {
+          "id": "card_1",
+          "title": "Criar wireframe do projeto",
+          "desc": "Esboçar as telas principais antes de começar o código.",
+          "priority": "high",
+          "date": "",
+          "tags": ["Design", "UX"],
+          "checklist": [
+            { "text": "Tela inicial", "completed": false },
+            { "text": "Fluxo de onboarding", "completed": false }
+          ],
+          "totalFocusTime": 0
+        },
+        {
+          "id": "card_2",
+          "title": "Configurar repositório Git",
+          "desc": "",
+          "priority": "medium",
+          "date": "",
+          "tags": ["DevOps"],
+          "checklist": [],
+          "totalFocusTime": 0
+        },
+        {
+          "id": "card_3",
+          "title": "Corrigir bug no formulário de login",
+          "desc": "Validação de e-mail não está funcionando no Safari.",
+          "priority": "high",
+          "date": "",
+          "tags": ["Bug", "Frontend"],
+          "checklist": [],
+          "totalFocusTime": 0
+        }
+      ]
+    },
+    {
+      "id": "col_doing",
+      "title": "Em Progresso",
+      "color": "#FFB347",
+      "limit": 3,
+      "cards": [
+        {
+          "id": "card_4",
+          "title": "Desenvolver página inicial",
+          "desc": "Componente Hero + Navbar responsivo com animações de entrada.",
+          "priority": "high",
+          "date": "",
+          "tags": ["Frontend", "Design"],
+          "checklist": [
+            { "text": "Hero section", "completed": true },
+            { "text": "Navbar responsiva", "completed": false },
+            { "text": "Seção de features", "completed": false }
+          ],
+          "totalFocusTime": 1800
+        }
+      ]
+    },
+    {
+      "id": "col_review",
+      "title": "Revisão",
+      "color": "#4FC3F7",
+      "limit": 0,
+      "cards": []
+    },
+    {
+      "id": "col_done",
+      "title": "Concluído",
+      "color": "#43D9AD",
+      "limit": 0,
+      "cards": [
+        {
+          "id": "card_5",
+          "title": "Definir tecnologias do projeto",
+          "desc": "HTML, CSS, JS vanilla — simples e eficaz.",
+          "priority": "low",
+          "date": "",
+          "tags": [],
+          "checklist": [],
+          "totalFocusTime": 0
+        },
+        {
+          "id": "card_6",
+          "title": "Reunião de kickoff com o cliente",
+          "desc": "Alinhamento de escopo, prazos e entregas.",
+          "priority": "medium",
+          "date": "",
+          "tags": ["Documentação"],
+          "checklist": [],
+          "totalFocusTime": 900
+        }
+      ]
+    }
+  ],
+  "archived": [],
+  "history": {}
+}

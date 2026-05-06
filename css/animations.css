@@ -1,0 +1,186 @@
+/* =============================================
+   MB FLOWBOARD — css/animations.css
+   Keyframes · Microinterações · Transições
+   ============================================= */
+
+/* ── Entradas ── */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes columnIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(15px) scale(0.98); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Dragging Premium ── */
+.card.dragging {
+  opacity: 0.9 !important;
+  transform: scale(1.05) rotate(2deg) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(124, 58, 237, 0.3) !important;
+  cursor: grabbing;
+  z-index: 1000;
+  filter: brightness(1.1);
+}
+
+/* ── Placeholder Animado ── */
+.card-ghost {
+  border: 2px dashed var(--accent);
+  background: rgba(124, 58, 237, 0.1);
+  border-radius: var(--radius-md);
+  animation: ghostPulse 1.5s infinite;
+  margin: 4px 0;
+}
+
+/* ── Interações ── */
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+@keyframes iconBounce {
+  from { transform: scale(0.6); }
+  to   { transform: scale(1); }
+}
+
+@keyframes focusPulse {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: var(--accent-light); }
+}
+
+/* ── Fade Out HUD ── */
+@keyframes fadeOutHUD {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Counter animado (contagem regressiva) ── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.metric-value { animation: countUp 0.5s var(--ease-pop) both; }
+
+/* ── Pulse em cards atrasados ── */
+@keyframes overdueGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 12px 2px rgba(239, 68, 68, 0.2); }
+}
+.card.card-overdue {
+  animation: overdueGlow 2.5s ease-in-out infinite;
+}
+
+/* ── Shake no WIP Limit ── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%  { transform: translateX(-5px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-3px); }
+  80%  { transform: translateX(3px); }
+}
+.column.wip-shake {
+  animation: shake 0.4s var(--ease) both;
+}
+
+/* ── Spin para loading ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Bounce suave ── */
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ── Gradient animado para card em destaque ── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Ripple em botões ── */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  transform: scale(0);
+  top: 50%; left: 50%;
+  margin: -50px 0 0 -50px;
+  animation: ripple 0.5s linear;
+  pointer-events: none;
+}
+@keyframes ripple {
+  to { transform: scale(3); opacity: 0; }
+}
+
+@keyframes titleGlowPulse {
+  0%, 100% { text-shadow: 0 0 4px rgba(239, 68, 68, 0.3); }
+  50% { text-shadow: 0 0 12px rgba(239, 68, 68, 0.7), 0 0 20px rgba(239, 68, 68, 0.3); }
+}
+
+/* ── Fade-out de Saída ── */
+@keyframes cardFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.9) translateY(10px); filter: blur(4px); }
+}
+.card-exit {
+  animation: cardFadeOut 0.3s var(--ease) forwards !important;
+  pointer-events: none;
+}
+/* ── Skeleton Loading Premium ── */
+.skeleton {
+  background: linear-gradient(
+    90deg, 
+    var(--glass-bg) 25%, 
+    var(--glass-bg-hover) 50%, 
+    var(--glass-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 2s infinite ease-in-out;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  border: 1px solid var(--glass-border) !important;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  height: 80px;
+  width: 100%;
+  margin-bottom: 8px;
+}

@@ -1,0 +1,560 @@
+/* =============================================
+   MB FLOWBOARD — css/board.css
+   Quadro Kanban · Colunas · Cards · Drag & Drop
+   ============================================= */
+
+/* ── Board Container ── */
+.board-container {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(var(--header-h) + 45px);
+  padding-bottom: 48px;
+  padding-left: 24px;
+  padding-right: 24px;
+  min-height: 100vh;
+  overflow-x: hidden; /* Evita scroll lateral quebrado */
+}
+
+.board {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  min-width: max-content;
+  padding-bottom: 24px;
+}
+
+/* ── Modo Lista ── */
+.board.view-list {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  gap: 24px;
+}
+.board.view-list .column {
+  width: 100%;
+}
+.board.view-list .cards-area {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* ══════════════════════════════════════════
+   COLUNA
+══════════════════════════════════════════ */
+.column {
+  width: var(--col-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-col);
+  overflow: hidden;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  animation: columnIn 0.38s var(--ease-pop) both;
+}
+
+.column.drag-over {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow), var(--shadow-col);
+  background: rgba(108, 99, 255, 0.07);
+}
+
+/* ── WIP Limit ── */
+.column.limit-exceeded {
+  border-color: var(--accent2);
+  box-shadow: 0 0 20px rgba(255, 101, 132, 0.15), var(--shadow-col);
+}
+.column.limit-exceeded .column-count {
+  background: var(--accent2);
+  color: #fff;
+}
+
+.column.limit-exceeded .column-title {
+  color: var(--accent2) !important;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  animation: titleGlowPulse 2s infinite ease-in-out;
+}
+
+/* ── Progress Bar (WIP) ── */
+.column-progress-container {
+  height: 4px;
+  background: var(--glass-bg-hover);
+  width: 100%;
+}
+.column-progress-bar {
+  height: 100%;
+  transition: width 0.4s var(--ease), background-color 0.3s var(--ease);
+}
+
+/* ── Column Header ── */
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--glass-border);
+  position: relative;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.column-header-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  opacity: 1;
+  border-radius: 0;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+}
+
+.column-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.column-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.column-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--glass-bg-hover);
+  border-radius: 20px;
+  padding: 2px 7px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.column-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.18s var(--ease);
+  flex-shrink: 0;
+}
+.column:hover .column-actions,
+.column:focus-within .column-actions {
+  opacity: 1;
+}
+
+/* ── Handle de arrastar coluna ── */
+.column-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.18s var(--ease), color 0.18s var(--ease);
+  padding: 2px 0;
+  border-radius: var(--radius-xs);
+}
+.column:hover .column-drag-handle {
+  opacity: 1;
+}
+.column-drag-handle:hover {
+  color: var(--text-secondary);
+  background: var(--glass-bg-hover);
+}
+.column-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ── Coluna sendo arrastada ── */
+.column.col-dragging {
+  opacity: 0.4;
+  transform: scale(0.97) rotate(1deg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+/* ── Coluna recebendo drop de outra coluna ── */
+.column.col-drag-over {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow), var(--shadow-col);
+  background: rgba(108, 99, 255, 0.08);
+  transform: scale(1.01);
+  transition: all 0.15s var(--ease);
+}
+
+/* ── Botões da Coluna ── */
+.col-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: var(--radius-xs);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.col-btn:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+.col-btn.delete:hover {
+  color: var(--accent2);
+  background: rgba(255, 101, 132, 0.1);
+}
+
+/* ── Cards Area ── */
+.cards-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  min-height: 64px;
+  flex: 1;
+}
+
+/* ── Add Card Button ── */
+.add-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: calc(100% - 24px);
+  margin: 0 12px 12px;
+  padding: 9px 12px;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+.add-card-btn:hover {
+  color: var(--accent-light);
+  border-color: rgba(108, 99, 255, 0.45);
+  background: rgba(108, 99, 255, 0.06);
+}
+
+/* ══════════════════════════════════════════
+   CARDS
+══════════════════════════════════════════ */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 12px 13px 11px;
+  cursor: grab;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease),
+              transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  position: relative;
+  animation: cardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--card-hover-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.card.dragging {
+  opacity: 0.35;
+  filter: blur(2px);
+  cursor: grabbing;
+  transform: scale(0.97) rotate(1deg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Cards atrasados ── */
+.card.card-overdue {
+  border-left: 3px solid var(--accent2) !important;
+  background: rgba(239, 68, 68, 0.04);
+}
+
+/* ── Cards próximos do vencimento ── */
+.card.card-due-soon {
+  border-left: 3px solid var(--accent-amber) !important;
+}
+
+/* ── Priority Bar (borda lateral colorida) ── */
+.card-priority-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 12px 0 0 12px;
+}
+.card-priority-bar.low    { background: var(--accent3); }
+.card-priority-bar.medium { background: var(--accent-amber); }
+.card-priority-bar.high   { background: var(--accent2); }
+
+/* ── Card Content ── */
+.card-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.45;
+  padding-left: 10px;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 10px;
+  margin-bottom: 8px;
+}
+
+.card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ── Alerta de prazo inline no card ── */
+.card-due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.card-due-badge.overdue {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.card-due-badge.due-today {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.card-due-badge.due-soon {
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.card-desc {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding-inline: 10px;
+  margin-bottom: 8px;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+.card-desc:hover { opacity: 0.9; }
+
+/* ── Checklist Progress ── */
+.card-checklist-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--accent3);
+  padding: 0 10px;
+  margin-bottom: 8px;
+}
+.checklist-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Card Footer ── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  margin-top: 6px;
+  min-height: 24px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.16s var(--ease);
+}
+.card:hover .card-actions,
+.card:focus-within .card-actions {
+  opacity: 1;
+}
+
+.card-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+.card-btn:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+.card-btn.delete:hover {
+  color: var(--accent2);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+
+/* ── Ghost (drop placeholder) ── */
+.card-ghost {
+  border: 2px dashed rgba(108, 99, 255, 0.55);
+  border-radius: var(--radius-md);
+  background: rgba(108, 99, 255, 0.06);
+  min-height: 58px;
+  animation: ghostPulse 1.2s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════
+   EMPTY STATE — por coluna e por quadro
+══════════════════════════════════════════ */
+.column-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  gap: 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.column-empty-state .empty-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+.column-empty-state p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.column-empty-state .btn-empty-create {
+  margin-top: 4px;
+  padding: 6px 14px;
+  background: rgba(108, 99, 255, 0.12);
+  border: 1px dashed rgba(108, 99, 255, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--accent-light);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.column-empty-state .btn-empty-create:hover {
+  background: rgba(108, 99, 255, 0.22);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* ── Board Vazio (sem colunas) ── */
+.empty-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52vh;
+  gap: 16px;
+  color: var(--text-muted);
+  text-align: center;
+  width: 100%;
+  min-width: 300px;
+  padding: 32px 24px;
+}
+.empty-board svg { opacity: 0.25; }
+.empty-board h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.empty-board p {
+  font-size: 14px;
+  max-width: 280px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* ── Arquivo ── */
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.archive-item {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.archive-item-info h4 { font-size: 14px; margin-bottom: 2px; }
+.archive-item-info p { font-size: 12px; color: var(--text-muted); }
+.archive-item-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+.archive-item-actions { display: flex; gap: 6px; }

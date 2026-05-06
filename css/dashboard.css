@@ -1,0 +1,192 @@
+/* =============================================
+   MB FLOWBOARD — css/dashboard.css
+   Dashboard de métricas e estatísticas
+   ============================================= */
+
+/* ── Dashboard Grid ── */
+.dashboard-grid {
+  display: none; /* Controlado pelo JS */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.dashboard-header-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -12px; /* Compensação visual para alinhar com o grid */
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.dashboard-premium-grid {
+    display: contents; /* Permite que os filhos herdem o grid do pai */
+}
+
+/* ── Metric Cards ── */
+.metric-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+#syncMetricsBtn:active .lucide {
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--metric-color, var(--accent-light));
+  opacity: 0.8;
+}
+.metric-card:hover {
+  background: var(--glass-bg-hover);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+.metric-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.metric-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--metric-color, var(--accent-light));
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+  /* Animação de contagem */
+  transition: color 0.3s var(--ease);
+}
+
+.metric-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* ── Chart Containers Premium ── */
+.chart-container {
+    min-height: 280px; /* Impede o colapso vertical */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.chart-container h3 {
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* ── Canvas Fixes ── */
+.chart-container canvas {
+    width: 100% !important;
+    height: 220px !important; /* Altura fixa conforme solicitado */
+    max-width: 100%;
+}
+
+/* ── Barra de Progresso Mini ── */
+.progress-mini {
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.progress-mini-fill {
+  height: 100%;
+  background: var(--metric-color, var(--accent3));
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
+}
+
+/* ── Mini Chart (Histórico Semanal) ── */
+.history-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 40px;
+  margin-top: 12px;
+  padding: 0 6px;
+}
+.chart-bar {
+  flex: 1;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: height 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  opacity: 0.7;
+}
+.chart-bar:hover {
+  opacity: 1;
+}
+.chart-bar:hover::after {
+  content: attr(data-val);
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #fff;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.chart-bar.today {
+  background: var(--accent3);
+  opacity: 1;
+}
+
+/* ── Dashboard Last Update ── */
+.dashboard-footer {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  padding-top: 4px;
+}
+
+/* ── Estilo para o Círculo de Produtividade ── */
+.prod-circle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}

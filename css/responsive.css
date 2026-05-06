@@ -1,0 +1,202 @@
+/* =============================================
+   MB FLOWBOARD — css/responsive.css
+   Media Queries · Tablet · Mobile · Print
+   ============================================= */
+
+/* ══════════════════════════════════════════
+   TABLET (max-width: 1024px)
+══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  :root {
+    --col-width: 280px;
+  }
+
+  .header-center {
+    gap: 8px;
+  }
+
+  .board-title {
+    max-width: 180px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   TABLET PEQUENO (max-width: 768px)
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  :root {
+    --col-width: 275px;
+  }
+
+  .btn-label {
+    display: none;
+  }
+  .btn-ghost {
+    padding: 7px 10px;
+  }
+  .header-right {
+    gap: 4px;
+  }
+
+  /* Dashboard em 2 colunas no tablet */
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    padding: 10px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE (max-width: 520px)
+══════════════════════════════════════════ */
+@media (max-width: 520px) {
+  :root {
+    --col-width: 264px;
+    --header-h:  58px;
+  }
+
+  .app-header {
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .board-container {
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: calc(var(--header-h) + 18px);
+  }
+
+  .board { gap: 14px; }
+
+  /* Logo menor em mobile */
+  .app-logo { height: 32px; max-width: 130px; }
+
+  .header-center { flex: 1; }
+
+  .board-title {
+    font-size: 14px;
+    max-width: 120px;
+  }
+
+  /* Esconde texto dos botões em mobile */
+  .btn-accent span { display: none; }
+  .btn-accent { padding: 7px 9px; }
+
+  .modal { padding: 22px 20px 20px; }
+
+  .emoji-grid { grid-template-columns: repeat(6, 1fr); }
+
+  .priority-picker { gap: 6px; }
+  .priority-btn { padding: 6px 10px; font-size: 12px; }
+
+  /* Dashboard em coluna única no mobile */
+  .dashboard-grid {
+    grid-template-columns: 100%;
+    gap: 12px;
+  }
+
+  /* Search menor no mobile */
+  #searchInput { width: 100px; }
+
+  /* Dropdown full-width no mobile */
+  .dropdown-content {
+    right: -60px;
+    min-width: 200px;
+  }
+
+  /* Modal full-width no mobile */
+  .modal-overlay {
+    padding: 12px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE MUITO PEQUENO (max-width: 360px)
+══════════════════════════════════════════ */
+@media (max-width: 360px) {
+  :root {
+    --col-width: 250px;
+  }
+
+  .app-header {
+    padding: 0 10px;
+  }
+
+  #searchInput { width: 80px; }
+  #priorityFilter { display: none; }
+
+  .app-footer {
+    padding: 30px 14px;
+    margin-top: 40px;
+  }
+  
+  .footer-content p {
+    font-size: 13px;
+  }
+  
+  .footer-tagline {
+    font-size: 11px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   IMPRESSÃO
+══════════════════════════════════════════ */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .app-header,
+  .modal-overlay,
+  .toast,
+  .add-card-btn,
+  .column-actions,
+  .card-actions { display: none !important; }
+
+  .board-container {
+    padding: 16px !important;
+    overflow: visible !important;
+    min-height: unset !important;
+  }
+
+  .board {
+    display: block !important;
+    min-width: unset !important;
+  }
+
+  .column {
+    width: 100% !important;
+    margin-bottom: 18px !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    background: #f8f8f8 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    page-break-inside: avoid;
+  }
+
+  .column-header { background: #e8e8e8 !important; }
+
+  .column-title,
+  .column-count { color: #000 !important; }
+
+  .column-header-accent { display: none !important; }
+
+  .card {
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    page-break-inside: avoid;
+    transform: none !important;
+    cursor: default !important;
+  }
+
+  .card-title { color: #111 !important; }
+  .card-desc  { color: #444 !important; }
+  .card-date  { color: #666 !important; }
+
+  .dashboard-grid { display: none !important; }
+}

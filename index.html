@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MB FlowBoard — Seu quadro pessoal Kanban com drag & drop, prioridades, tags e produtividade. Produto SaaS premium local." />
+  <meta name="theme-color" content="#020617" />
+  <title>MB - FlowBoard — Meu Quadro Pessoal</title>
+
+  <!-- Fontes Premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- CSS Modular (ordem importa) -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/board.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="user-avatar-wrapper" id="userProfileTrigger" title="Configurações de Perfil">
+        <div class="user-avatar" id="headerAvatar">--</div>
+      </div>
+      <img
+        src="assets/logo/logo.png"
+        alt="MB - FlowBoard"
+        class="app-logo"
+        draggable="false"
+      />
+    </div>
+
+    <div class="header-center">
+      <!-- Pomodoro Timer -->
+      <div id="pomodoroContainer" style="display: none;">
+        <div class="pomodoro-display">
+          <div id="pomodoroCycles" class="pomodoro-cycles"></div>
+          <span id="timerMinutes">25</span>:<span id="timerSeconds">00</span>
+          <button class="timer-btn-stop" id="stopTimerBtn" title="Parar Foco"><i data-lucide="square" size="14"></i></button>
+        </div>
+      </div>
+
+      <!-- Emoji + Título -->
+      <button class="board-emoji-btn" id="boardEmojiDisplay" title="Mudar emoji do quadro" aria-label="Emoji do quadro">
+        <span id="boardEmojiText">🚀</span>
+      </button>
+      <span class="board-title" id="boardTitleDisplay" title="Clique para editar o nome do quadro" role="button" tabindex="0">Meu Quadro</span>
+
+      <!-- Contador de concluídas -->
+      <div class="header-stats" title="Tarefas concluídas">
+        <span id="completedCounter"><i data-lucide="check-circle-2"></i> 0</span>
+      </div>
+
+    </div>
+
+    <div class="header-right">
+      <!-- Busca + Filtros -->
+      <div class="search-wrapper">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Buscar tarefas... (F)" aria-label="Buscar tarefas" />
+        <select id="priorityFilter" aria-label="Filtrar por prioridade">
+          <option value="all">Prioridade</option>
+          <option value="high">🔴 Alta</option>
+          <option value="medium">🟡 Média</option>
+          <option value="low">🟢 Baixa</option>
+        </select>
+        <div class="date-filter-wrapper">
+          <i data-lucide="calendar" size="14"></i>
+          <input type="date" id="exactDateFilter" title="Filtrar por data específica" />
+        </div>
+        <button class="btn-icon btn-ghost" id="clearFiltersBtn" title="Limpar filtros" aria-label="Limpar filtros">
+          <i data-lucide="filter-x" size="14"></i>
+        </button>
+      </div>
+      
+      <!-- Botões de ação abaixo da busca -->
+      <div class="header-actions-row">
+        <!-- Nova Coluna -->
+        <button class="btn-icon btn-accent" id="addColumnBtn" title="Adicionar nova coluna" aria-label="Nova coluna">
+          <i data-lucide="plus"></i>
+          <span>Coluna</span>
+        </button>
+
+        <!-- Dashboard Toggle -->
+        <button class="btn-icon btn-ghost" id="toggleDashboardBtn" title="Ver Dashboard / Métricas">
+          <i data-lucide="bar-chart-3"></i>
+          <span class="btn-label">Métricas</span>
+        </button>
+
+        <!-- Toggle de Tema (Dark/Light) -->
+        <button class="btn-icon btn-ghost" id="themeToggleBtn" title="Alternar modo Claro/Escuro" aria-label="Alternar tema">
+          <i data-lucide="sun" id="themeToggleIcon"></i>
+        </button>
+
+        <!-- Dropdown Mais Opções -->
+        <div class="dropdown" id="moreDropdown">
+          <button class="btn-icon btn-ghost" id="moreActionsBtn" title="Mais opções" aria-haspopup="true" aria-expanded="false">
+            <i data-lucide="more-horizontal"></i>
+            <span>Mais</span>
+          </button>
+          <div class="dropdown-content">
+            <button class="btn-icon btn-ghost dropdown-item" id="toggleViewBtn"><i data-lucide="layout"></i> Alternar Vista</button>
+            <button class="btn-icon btn-ghost dropdown-item" id="openArchiveBtn"><i data-lucide="archive"></i> Arquivo</button>
+            <button class="btn-icon btn-ghost dropdown-item" id="exportBoardBtn"><i data-lucide="download"></i> Exportar</button>
+            <button class="btn-icon btn-ghost dropdown-item" id="printBoardBtn"><i data-lucide="printer"></i> Imprimir</button>
+            <button class="btn-icon btn-ghost dropdown-item btn-danger-hover" id="clearBoardBtn"><i data-lucide="trash-2"></i> Limpar Tudo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== BOARD ===== -->
+  <main class="board-container" role="main">
+    <div id="dashboardSection" class="dashboard-grid" style="display: none;" aria-label="Dashboard de métricas">
+      <!-- Cards de métricas via JS -->
+    </div>
+
+    <!-- ===== MODO FOCO EXPANDIDO ===== -->
+    <div id="focusModeSection" class="focus-mode-view" style="display: none;">
+      <div class="focus-content-glass glass">
+        <div class="focus-header">
+          <span id="focusPrioBadge" class="card-due-badge"></span>
+          <h2 id="focusTaskTitle"></h2>
+        </div>
+        <div class="focus-timer-big">
+          <span id="bigTimerMinutes">25</span>:<span id="bigTimerSeconds">00</span>
+        </div>
+        <div id="focusTaskDesc" class="focus-task-desc"></div>
+        <div class="focus-footer">
+          <button class="btn-primary" id="quitFocusBtn">
+            <i data-lucide="x-circle"></i> Sair do Foco
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="board" id="board" role="list" aria-label="Quadro Kanban">
+      <!-- Injeção instantânea de skeletons antes do parsing dos scripts -->
+      <script>
+        (function() {
+          try {
+            const s = localStorage.getItem('kanflow_state');
+            if (s) {
+              const parsed = JSON.parse(s);
+              if (parsed.columns && parsed.columns.length > 0) {
+                document.getElementById('board').innerHTML = parsed.columns.map(() => `
+                  <div class="column skeleton">
+                    <div class="column-header" style="height: 48px; opacity: 0.2; background: rgba(255,255,255,0.1); margin-bottom:12px"></div>
+                    <div class="cards-area"><div class="card skeleton-card skeleton"></div><div class="card skeleton-card skeleton"></div></div>
+                  </div>`).join('');
+              }
+            }
+          } catch(e) {}
+        })();
+      </script>
+      <!-- Colunas geradas dinamicamente via JS -->
+    </div>
+  </main>
+
+  <!-- ===== MODAL: Emoji Picker ===== -->
+  <div class="modal-overlay" id="emojiModal" role="dialog" aria-modal="true" aria-labelledby="emojiModalTitle">
+    <div class="modal glass">
+      <div class="modal-header">
+        <h2 id="emojiModalTitle">Escolher Emoji</h2>
+        <button class="btn-close" id="closeEmojiModal" aria-label="Fechar">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="emoji-grid" id="emojiGrid" role="grid" aria-label="Grade de emojis"></div>
+        <button class="btn-secondary btn-full" id="clearEmojiBtn">Remover emoji</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Nova / Editar Coluna ===== -->
+  <div class="modal-overlay" id="columnModal" role="dialog" aria-modal="true" aria-labelledby="columnModalTitle">
+    <div class="modal glass">
+      <div class="modal-header">
+        <h2 id="columnModalTitle">Nova Coluna</h2>
+        <button class="btn-close" id="closeColumnModal" aria-label="Fechar">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <label for="columnNameInput">Nome da coluna</label>
+        <input type="text" id="columnNameInput" placeholder="Ex: Em Progresso..." maxlength="40" autocomplete="off" />
+        <label for="columnLimitInput">Limite de tarefas (WIP) <span class="label-optional">(0 = sem limite)</span></label>
+        <input type="number" id="columnLimitInput" placeholder="Ex: 5" min="0" />
+        <label>Cor do cabeçalho</label>
+        <div class="color-picker" role="radiogroup" aria-label="Cor do cabeçalho">
+          <button class="color-dot" data-color="#6C63FF" style="background:#6C63FF" aria-label="Roxo" role="radio"></button>
+          <button class="color-dot" data-color="#FF6584" style="background:#FF6584" aria-label="Rosa" role="radio"></button>
+          <button class="color-dot" data-color="#43D9AD" style="background:#43D9AD" aria-label="Verde" role="radio"></button>
+          <button class="color-dot" data-color="#FFB347" style="background:#FFB347" aria-label="Laranja" role="radio"></button>
+          <button class="color-dot" data-color="#4FC3F7" style="background:#4FC3F7" aria-label="Azul" role="radio"></button>
+          <button class="color-dot" data-color="#BA68C8" style="background:#BA68C8" aria-label="Lilás" role="radio"></button>
+          <button class="color-dot" data-color="#F06292" style="background:#F06292" aria-label="Pink" role="radio"></button>
+          <button class="color-dot" data-color="#4DB6AC" style="background:#4DB6AC" aria-label="Teal" role="radio"></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelColumnModal">Cancelar</button>
+        <button class="btn-primary" id="saveColumnBtn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Perfil do Usuário ===== -->
+  <div class="modal-overlay" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <div class="modal glass">
+      <div class="modal-header">
+        <h2 id="profileModalTitle">Perfil Local</h2>
+        <button class="btn-close" id="closeProfileModal" aria-label="Fechar">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Preview da Foto de Perfil -->
+        <div class="profile-preview-container">
+          <div id="profilePhotoPreview" class="profile-photo-circle">--</div>
+          <div class="profile-preview-info">
+            <span class="preview-label">Visualização do Perfil</span>
+            <span class="preview-hint">A foto será redimensionada para 400x400px</span>
+          </div>
+        </div>
+
+        <label for="userNameInput">Seu Nome</label>
+        <input type="text" id="userNameInput" placeholder="Ex: Bruno Oliveira" maxlength="30" />
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+          <label for="userPhotoInput" style="margin-bottom: 0;">Foto de Perfil <span class="label-optional">(JPG, PNG, WEBP)</span></label>
+          <button class="btn-ghost" id="removePhotoBtn" style="font-size:11px; padding: 4px 8px; display: none; color: var(--accent2);">Remover Foto</button>
+        </div>
+        <input type="file" id="userPhotoInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="font-size: 13px; margin-top: 4px;" />
+
+        <!-- Editor de Recorte (LinkedIn Style) -->
+        <div id="cropEditorOverlay" class="crop-editor-overlay">
+          <div class="crop-editor-header">
+            <h3>Ajustar Foto</h3>
+            <button type="button" id="cancelCropBtn" class="btn-close">&times;</button>
+          </div>
+          <div class="crop-viewport-container">
+            <div id="cropViewport" class="crop-viewport">
+              <img id="cropImage" src="" alt="Ajustar imagem" draggable="false" />
+              <div class="crop-mask"></div>
+            </div>
+          </div>
+          <div class="crop-controls">
+            <div class="zoom-control">
+              <i data-lucide="zoom-out" size="14"></i>
+              <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1" />
+              <i data-lucide="zoom-in" size="14"></i>
+            </div>
+            <button type="button" id="applyCropBtn" class="btn-primary btn-full">Salvar Foto</button>
+          </div>
+        </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+      <div>
+        <label for="focusTimeInput">Foco (min)</label>
+        <input type="number" id="focusTimeInput" min="1" max="90" value="25" />
+      </div>
+      <div>
+        <label for="breakTimeInput">Pausa (min)</label>
+        <input type="number" id="breakTimeInput" min="1" max="60" value="5" />
+      </div>
+    </div>
+
+        <label>Cor do Avatar</label>
+        <div class="color-picker" id="avatarColorPicker" role="radiogroup" aria-label="Cor do avatar"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary btn-full" id="saveProfileBtn">Salvar Perfil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Nova / Editar Tarefa ===== -->
+  <div class="modal-overlay" id="cardModal" role="dialog" aria-modal="true" aria-labelledby="cardModalTitle">
+    <div class="modal glass">
+      <div class="modal-header">
+        <h2 id="cardModalTitle">Nova Tarefa</h2>
+        <button class="btn-close" id="closeCardModal" aria-label="Fechar">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <label for="cardTitleInput">Titulo <span class="required" aria-hidden="true">*</span></label>
+        <input type="text" id="cardTitleInput" placeholder="O que precisa ser feito?" maxlength="80" autocomplete="off" />
+
+        <label for="cardDescInput">Descricao</label>
+        <textarea id="cardDescInput" placeholder="Detalhes opcionais..." rows="3" maxlength="500"></textarea>
+
+        <label>Checklist</label>
+        <div id="checklistArea" class="modal-body" style="gap:8px; padding:0;"></div>
+        <div class="checklist-input-group">
+          <input type="text" id="newChecklistItem" placeholder="Novo item do checklist..." />
+          <button class="btn-icon btn-ghost" id="addChecklistItemBtn" title="Adicionar item"><i data-lucide="plus"></i></button>
+        </div>
+
+        <label for="cardTagsInput">Etiquetas <span class="label-optional">(separadas por vírgula)</span></label>
+        <input type="text" id="cardTagsInput" placeholder="Ex: Bug, Design, API, Frontend" maxlength="100" />
+
+        <label>Prioridade</label>
+        <div class="priority-picker" role="radiogroup" aria-label="Prioridade da tarefa">
+          <button class="priority-btn active" data-priority="low"    role="radio" aria-checked="true">&#x1F7E2; Baixa</button>
+          <button class="priority-btn"        data-priority="medium" role="radio" aria-checked="false">&#x1F7E1; Média</button>
+          <button class="priority-btn"        data-priority="high"   role="radio" aria-checked="false">&#x1F534; Alta</button>
+        </div>
+
+        <label for="cardDateInput">Prazo <span class="label-optional">(opcional)</span></label>
+        <input type="date" id="cardDateInput" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCardModal">Cancelar</button>
+        <button class="btn-primary" id="saveCardBtn">Salvar Tarefa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Arquivo ===== -->
+  <div class="modal-overlay" id="archiveModal" role="dialog" aria-modal="true" aria-labelledby="archiveModalTitle">
+    <div class="modal glass">
+      <div class="modal-header">
+        <h2 id="archiveModalTitle">Tarefas Arquivadas</h2>
+        <button class="btn-close" id="closeArchiveModal" aria-label="Fechar">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div id="archiveList" class="archive-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger btn-full" id="clearArchiveBtn" style="display: none;">Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Confirmar Exclusão ===== -->
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmMessage">
+    <div class="modal glass confirm-modal">
+      <div class="confirm-icon" aria-hidden="true">&#x26A0;&#xFE0F;</div>
+      <p id="confirmMessage">Tem certeza?</p>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelConfirm">Cancelar</button>
+        <button class="btn-danger"    id="okConfirm">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RODAPÉ (Footer) ===== -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <!-- Badge de Evolução no Rodapé -->
+      <div class="evolution-badge footer-badge">
+        <span class="rocket-icon">🚀</span>
+        <div class="badge-content">
+          <span class="badge-title">PROJETO EM EVOLUÇÃO</span>
+          <span class="badge-subtitle">FUTURAS ATUALIZAÇÕES</span>
+        </div>
+      </div>
+
+      <p>Desenvolvido por <strong>Bruno Oliveira - MB Tech</strong></p>
+      
+      <div class="footer-social">
+        <a href="https://github.com/BrunoDev-2026" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/bruno-david-de-oliveira-buchardt-721643246" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.238 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        </a>
+      </footer>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ===== JAVASCRIPT MODULAR (ordem importa) ===== -->
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/tags.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/metrics-logic.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/dragdrop.js"></script>
+  <script src="js/avatar.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- script.js (raiz) é legado: não deve ser executado -->
+
+</body>
+</html>
+
