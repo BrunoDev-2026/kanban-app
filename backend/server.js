@@ -11,24 +11,27 @@ app.use(cors());
 app.use(express.json());
 
 // Carrega credenciais do Firebase
-let serviceAccount;
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+console.log("🔍 Carregando credenciais do Firebase da variável de ambiente...");
+
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  console.error("❌ ERRO CRÍTICO: GOOGLE_APPLICATION_CREDENTIALS_JSON não encontrada!");
+  process.exit(1); // Encerra o app se a variável não existir
+}
+
+let serviceAccount = null;
+try {
   serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-  console.log('✅ Credenciais carregadas da variável de ambiente');
-} else {
-  try {
-    serviceAccount = require('./serviceAccountKey.json');
-    console.log('✅ Credenciais carregadas do arquivo local');
-  } catch (err) {
-    console.error('❌ Falha ao carregar credenciais do Firebase:', err.message);
-    process.exit(1);
-  }
+} catch (e) {
+  console.error("❌ ERRO CRÍTICO: JSON inválido em GOOGLE_APPLICATION_CREDENTIALS_JSON", e.message);
+  process.exit(1);
 }
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 const db = admin.firestore();
+console.log("✅ Firebase Admin inicializado com sucesso!");
+
 
 // Rota de teste
 app.get('/tarefas', async (req, res) => {
