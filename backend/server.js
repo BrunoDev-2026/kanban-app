@@ -3,8 +3,16 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-// Carrega a chave de serviço baixada
-const serviceAccount = require('./serviceAccountKey.json');
+// Tenta carregar as credenciais da variável de ambiente (Fly.io) ou do arquivo local (desenvolvimento)
+let serviceAccount;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  // Em ambiente de produção (Fly.io), a variável contém o JSON como string
+  serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+} else {
+  // Em desenvolvimento local, carrega o arquivo
+  serviceAccount = require('./serviceAccountKey.json');
+}
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
