@@ -37,6 +37,6 @@ app.post('/tarefas', async (req, res) => {
   }
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 Servidor rodando na porta ${port}`);
+app.listen(process.env.PORT || 4000, '0.0.0.0', () => {
+  console.log(`🚀 Servidor rodando na porta ${process.env.PORT || 4000}`);
 });
