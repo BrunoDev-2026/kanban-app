@@ -1,8 +1,22 @@
 # TODO.md
 
 - [x] Entender o código atual de backend/server.js (conexão MongoDB e inicialização do servidor).
-- [ ] Substituir a lógica atual de conexão por um bloco mais robusto com fallback: ler MONGODB_URI via .env e usar string direta como Plano B.
-- [ ] Garantir que `dotenv` seja carregado e que o processo finalize com erro se não houver URI.
-- [ ] Rodar o backend localmente (node / npm run dev) para verificar se conecta e o servidor sobe.
-
-
+- [x] Substituir a lógica atual de conexão por um bloco mais robusto com fallback: ler MONGODB_URI via .env e usar string direta como Plano B.
+- [x] Garantir que `dotenv` seja carregado e que o processo finalize com erro se não houver URI.
+- [x] Rodar o backend localmente (node / npm run dev) para verificar se conecta e o servidor sobe.
+- [x] Implementar Schema e Model usando Mongoose para melhor organização.
+- [x] Configurar mensagens de erro amigáveis e validações no Schema.
+- [x] Migrar rota POST para usar Mongoose com tratamento de erros.
+- [x] Criar middleware global para tratamento de erros do Mongoose.
+- [x] Migrar rotas de DELETE e PUT para usar os métodos do Mongoose.
+- [x] Implementar autenticação simples via API Key no Backend e Frontend.
+- [x] Corrigir integração do script.js com rotas PUT e DELETE.
+- [x] Tratar erros de autenticação (401) no frontend com notificações toast.
+- [x] Adicionar indicador de carregamento (spinner) para chamadas de API.
+- [x] Converter o sistema para usar o Backend como fonte da verdade (removendo cards do localStorage).
+- [x] Habilitar logs detalhados (debug) no Mongoose para monitorar a conexão.
+- [x] Configurar reconexão automática e logs de eventos no Mongoose.
+- [x] Validar IP Whitelist no Atlas (adicionado 0.0.0.0/0).
+- [x] Testar conexão via MongoDB Compass para isolar erro de rede.
+- [x] Configurar servidores DNS externos (Google/Cloudflare) para evitar falhas de SRV.
+- [ ] Desativar temporariamente Cloudflare WARP se o erro de timeout persistir.

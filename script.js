@@ -1,5 +1,9 @@
 /**
  * KanFlow — script.js v2.0
+ *
+ * ATENÇÃO: Este arquivo foi modificado para usar Firebase Firestore
+ * como backend de persistência, substituindo a API Node/Express/MongoDB.
+ *
  * Aplicação Kanban completa com Drag & Drop nativo
  * Persistência via localStorage | Sem frameworks
  *
@@ -13,6 +17,14 @@
  *   profile: { name, color }
  * }
  */
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore"; // Added Firestore imports
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
 'use strict';
 
@@ -250,46 +262,182 @@ function saveState() {
 /* ════════════════════════════════════════════
    ESTADO GLOBAL
 ════════════════════════════════════════════ */
+const API_URL = "https://backend-thrumming-shape-9932.fly.dev/tarefas";
+const API_KEY = "minha-chave-secreta-2026";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAp2UrjxlrLY7Hs-W3QGc14iNR5ufVtGyY",
+  authDomain: "kanban-app-48af6.firebaseapp.com",
+  projectId: "kanban-app-48af6",
+  storageBucket: "kanban-app-48af6.firebasestorage.app",
+  messagingSenderId: "702575256220",
+  appId: "1:702575256220:web:a20919de6b4de8667d4359",
+  measurementId: "G-5XDWK59TMY"
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig); // Renamed 'app' to 'firebaseApp' to avoid conflict with global 'app' variable if any
+const analytics = getAnalytics(firebaseApp);
+const db = getFirestore(firebaseApp); // Get Firestore instance
+
 // =========================
-// API (Node/Express)
+// API (Node/Express) - Conexão com Fly.dev
 // =========================
-// const API_URL = "https://SEU_RAILWAY_URL/tarefas"; // TODO: trocar para Railway quando for subir
-const API_URL = "http://localhost:3000/tarefas";
 
 function apiUrlForId(id) {
   return `${API_URL}/${id}`;
 }
 
-async function apiGetTarefas() {
-  const res = await fetch(API_URL, { method: 'GET' });
-  if (!res.ok) throw new Error(`GET ${API_URL} failed: ${res.status}`);
+/**
+ * Processa a resposta da API de forma centralizada.
+ */
+async function handleApiResponse(res) {
+  setLoading(false);
+  if (res.status === 401) {
+    showToast('🚫 Chave de API inválida.');
+    throw new Error('Não autorizado');
+  }
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.erro || `Erro: ${res.status}`);
+  }
   return res.json();
+}
+
+async function apiGetTarefas() {
+  setLoading(true);
+  const res = await fetch(API_URL, { headers: { 'x-api-key': API_KEY } });
+  return handleApiResponse(res);
 }
 
 async function apiCreateTarefa({ titulo, coluna }) {
+  setLoading(true);
   const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
     body: JSON.stringify({ titulo, coluna })
   });
-  if (!res.ok) throw new Error(`POST ${API_URL} failed: ${res.status}`);
-  return res.json();
+  return handleApiResponse(res);
 }
 
 async function apiUpdateTarefa({ id, titulo, coluna }) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, titulo, coluna })
+  setLoading(true);
+  const res = await fetch(apiUrlForId(id), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+    body: JSON.stringify({ titulo, coluna })
   });
-  if (!res.ok) throw new Error(`POST ${API_URL} (update) failed: ${res.status}`);
-  return res.json();
+  return handleApiResponse(res);
 }
 
 async function apiDeleteTarefa(id) {
-  const res = await fetch(apiUrlForId(id), { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE ${apiUrlForId(id)} failed: ${res.status}`);
-  return res.json();
+  setLoading(true);
+  const res = await fetch(apiUrlForId(id), { 
+    method: 'DELETE',
+    headers: { 'x-api-key': API_KEY }
+  });
+  return handleApiResponse(res);
+}
+
+/**
+ * Controla o estado visual de carregamento
+ */
+function setLoading(isLoading) {
+  let spinner = document.getElementById('api-spinner');
+  if (!spinner) {
+    spinner = document.createElement('div');
+    spinner.id = 'api-spinner';
+    spinner.innerHTML = '<div class="spinner-dot"></div>';
+    document.body.appendChild(spinner);
+  }
+  
+  if (isLoading) {
+    spinner.classList.add('active');
+  } else {
+    spinner.classList.remove('active');
+  }
+}
+
+async function firebaseGetTarefas() {
+  setLoading(true);
+  try {
+    const tarefasCol = collection(db, "tarefas");
+    const tarefaSnapshot = await getDocs(tarefasCol);
+    const tarefasList = tarefaSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+    return tarefasList;
+  } catch (error) {
+    console.error("Erro ao buscar tarefas do Firebase:", error);
+    showToast(`❌ Erro ao carregar tarefas: ${error.message}`);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function firebaseCreateTarefa({ titulo, coluna }) {
+  setLoading(true);
+  try {
+    const docRef = await addDoc(collection(db, "tarefas"), {
+      titulo,
+      coluna,
+      descricao: '', // Default values
+      prioridade: 'low',
+      data: '',
+      tags: [],
+      checklist: [],
+      totalFocusTime: 0,
+      createdAt: new Date().toISOString()
+    });
+    showToast('🎉 Tarefa criada no Firebase!');
+    return { _id: docRef.id, titulo, coluna }; // Return minimal data for UI update
+  } catch (error) {
+    console.error("Erro ao criar tarefa no Firebase:", error);
+    showToast(`❌ Erro ao criar tarefa: ${error.message}`);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function firebaseUpdateTarefa({ id, titulo, coluna, desc, date, priority, tags, checklist, totalFocusTime }) {
+  setLoading(true);
+  try {
+    const tarefaRef = doc(db, "tarefas", id);
+    const updateData = { titulo, coluna };
+    if (desc !== undefined) updateData.descricao = desc;
+    if (date !== undefined) updateData.data = date;
+    if (priority !== undefined) updateData.prioridade = priority;
+    if (tags !== undefined) updateData.tags = tags;
+    if (checklist !== undefined) updateData.checklist = checklist;
+    if (totalFocusTime !== undefined) updateData.totalFocusTime = totalFocusTime;
+
+    await updateDoc(tarefaRef, updateData);
+    showToast('✅ Tarefa atualizada no Firebase!');
+    return { _id: id, ...updateData };
+  } catch (error) {
+    console.error("Erro ao atualizar tarefa no Firebase:", error);
+    showToast(`❌ Erro ao atualizar tarefa: ${error.message}`);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function firebaseDeleteTarefa(id) {
+  setLoading(true);
+  try {
+    await deleteDoc(doc(db, "tarefas", id));
+    showToast('🗑️ Tarefa excluída do Firebase!');
+    return { mensagem: 'Tarefa excluída com sucesso' };
+  } catch (error) {
+    console.error("Erro ao excluir tarefa no Firebase:", error);
+    showToast(`❌ Erro ao excluir tarefa: ${error.message}`);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
 }
 
 function uiColumnTitleToBackendColuna(title) {
@@ -666,9 +814,9 @@ async function archiveCard(colId, cardId) {
     return;
   }
 
-  card.archivedAt = new Date().toISOString();
+  card.archivedAt = new Date().toISOString(); //
   state.archived.push(card);
-  saveState();
+  saveLocalState(); // Save local archived state
   render();
   showToast('📦 Tarefa arquivada!');
   if (activeFocusCardId === cardId) stopPomodoro();
@@ -902,7 +1050,7 @@ async function onDrop(e) {
   dragCardId = null;
   dragColId  = null;
 
-  saveState();
+  saveLocalState(); // Save local state (non-task related)
   render();
   
   // Registra no histórico se moveu para Concluído
@@ -917,7 +1065,7 @@ async function onDrop(e) {
     const movedCard = tgtCol.cards[insertIdx]?.id ? tgtCol.cards[insertIdx] : card;
     if (movedCard && movedCard.id) {
       const colunaBackend = uiColumnTitleToBackendColuna(tgtCol.title);
-      await apiUpdateTarefa({
+      await firebaseUpdateTarefa({
         id: movedCard.id,
         titulo: movedCard.title,
         coluna: colunaBackend
@@ -1045,7 +1193,7 @@ document.getElementById('saveColumnBtn').addEventListener('click', () => {
     showToast('🎉 Coluna criada!');
   }
 
-  saveState();
+  saveLocalState(); // Save local column structure
   render();
   closeColumnModal();
 });
@@ -1192,6 +1340,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         card.tags     = tags;
         card.priority = selectedPriority;
         if (updated && updated._id) card.id = String(updated._id);
+        card.checklist = tempChecklist; // Update local checklist
       }
       showToast('✅ Tarefa atualizada!');
     } catch (e) {
@@ -1201,7 +1350,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
     }
   } else {
     try {
-      const created = await apiCreateTarefa({ titulo: title, coluna: movedColumnBackend });
+      const created = await firebaseCreateTarefa({ titulo: title, coluna: movedColumnBackend });
       const newId = created && (created._id || created.id);
       col.cards.push({
         id: newId ? String(newId) : uid(),
@@ -1210,7 +1359,8 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         date,
         tags,
         priority: selectedPriority
-      });
+      }); //
+      card.checklist = tempChecklist; // Include checklist
       showToast('🎉 Tarefa criada!');
     } catch (e) {
       console.error(e);
@@ -1219,7 +1369,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
     }
   }
 
-  saveState();
+  saveLocalState(); // Save local state (non-task related)
   render();
   closeCardModal();
 });
@@ -1254,7 +1404,7 @@ function closeEmojiModal() {
 
 function selectEmoji(emoji) {
   state.emoji = emoji;
-  saveState();
+  saveLocalState(); // Save local emoji state
   render();
   showToast(`Emoji atualizado para ${emoji}! ✨`);
   closeEmojiModal();
@@ -1265,7 +1415,7 @@ document.getElementById('closeEmojiModal').addEventListener('click', closeEmojiM
 
 document.getElementById('clearEmojiBtn').addEventListener('click', () => {
   state.emoji = '🚀';
-  saveState();
+  saveLocalState(); // Save local emoji state
   render();
   showToast('Emoji redefinido! 🚀');
   closeEmojiModal();
@@ -1309,20 +1459,46 @@ window.restoreFromArchive = function(cardId) {
   if (idx === -1) return;
   const [card] = state.archived.splice(idx, 1);
   
-  // Restaura na primeira coluna disponível
+  // Restaura na primeira coluna disponível e adiciona ao Firebase
   if (state.columns.length > 0) {
     state.columns[0].cards.push(card);
-    showToast('♻️ Tarefa restaurada!');
+    const targetCol = state.columns[0];
+    const colunaBackend = uiColumnTitleToBackendColuna(targetCol.title);
+    firebaseCreateTarefa({
+      titulo: card.title,
+      coluna: colunaBackend,
+      descricao: card.desc,
+      prioridade: card.priority,
+      data: card.date,
+      tags: card.tags,
+checklist: card.checklist,
+      totalFocusTime: card.totalFocusTime
+    }).then(createdCard => {
+      card.id = createdCard._id; // Update the ID of the restored card with the new Firebase ID
+      saveLocalState(); // Save local archived state
+      render();
+      showToast('♻️ Tarefa restaurada!');
+      openArchiveModal(); // Refresh
+    }).catch(e => {
+      console.error("Erro ao restaurar tarefa para o Firebase:", e);
+      showToast('⚠️ Erro ao restaurar tarefa.');
+      // Revert local changes if Firebase fails
+      state.archived.splice(idx, 0, card);
+      saveLocalState();
+      render();
+    });
+  } else {
+    saveLocalState(); // Save local archived state
+    render();
+    showToast('♻️ Tarefa restaurada! (Mas não há colunas ativas para ela)');
+    openArchiveModal(); // Refresh
   }
-  saveState();
-  render();
-  openArchiveModal(); // Refresh
 };
 
 window.deleteFromArchive = function(cardId) {
   openConfirm('Excluir esta tarefa permanentemente?', () => {
     state.archived = state.archived.filter(c => c.id !== cardId);
-    saveState();
+    saveLocalState(); // Save local archived state
     openArchiveModal();
     showToast('🗑️ Tarefa excluída definitivamente.');
   });
@@ -1334,7 +1510,7 @@ document.getElementById('clearArchiveBtn').addEventListener('click', () => {
   if (state.archived.length === 0) return;
   openConfirm('Deseja excluir permanentemente todas as tarefas arquivadas?', () => {
     state.archived = [];
-    saveState();
+    saveLocalState(); // Save local archived state
     openArchiveModal();
     showToast('🧹 Arquivo limpo!');
   });
@@ -1432,8 +1608,8 @@ function activateTitleEdit() {
     if (saved) return;
     saved = true;
     const newValue = input.value.trim() || 'Meu Quadro';
-    state.title = newValue;
-    saveState();
+    state.title = newValue; //
+    saveLocalState(); // Save local title state
     render();
     showToast('✏️ Título atualizado!');
   };
@@ -1458,8 +1634,27 @@ function activateTitleEdit() {
 // Limpar quadro
 document.getElementById('clearBoardBtn').addEventListener('click', () => {
   openConfirm('Deseja limpar todo o quadro? Isso excluirá todas as colunas e tarefas permanentemente.', () => {
-    state.columns = [];
-    saveState();
+    // Delete all tasks from Firebase
+    setLoading(true);
+    try {
+      const tarefasCol = collection(db, "tarefas");
+      const tarefaSnapshot = await getDocs(tarefasCol);
+      const deletePromises = tarefaSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      showToast('🧹 Todas as tarefas excluídas do Firebase!');
+    } catch (e) {
+      console.error("Erro ao limpar tarefas no Firebase:", e);
+      showToast('❌ Erro ao limpar tarefas no Firebase.');
+      setLoading(false);
+      return;
+    } finally {
+      setLoading(false);
+    }
+
+    state.columns = []; // Clear local columns (will be rebuilt from Firebase if any)
+    state.archived = []; // Clear local archived
+    state.history = {}; // Clear local history
+    saveLocalState(); // Save empty local state
     render();
     showToast('🧹 Quadro limpo!');
   });
@@ -1525,7 +1720,8 @@ window.addEventListener('keydown', e => {
   // Ctrl + S -> Salvar (Feedback Visual)
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
-    saveState();
+    // With Firebase, changes are saved immediately. This can just be a visual feedback.
+    // saveState(); // No longer saving full state to localStorage
     showToast('💾 Alterações salvas!');
     showShortcutHUD('Salvar');
   }
@@ -1559,7 +1755,7 @@ document.getElementById('userProfileTrigger').addEventListener('click', () => {
 
 document.getElementById('saveProfileBtn').addEventListener('click', () => {
   state.profile.name = document.getElementById('userNameInput').value || 'Usuário';
-  saveState();
+  saveLocalState(); // Save local profile state
   render();
   closeModal('profileModal');
   showToast('👤 Perfil atualizado!');
@@ -1585,11 +1781,9 @@ document.getElementById('clearFiltersBtn').addEventListener('click', () => {
 /* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
-(async () => {
-  // Carrega tarefas do backend antes do primeiro render final
-  if (typeof initBoardFromAPI === 'function') {
-    await initBoardFromAPI();
-  }
+(async () => { //
+  // Carrega tarefas da API antes do primeiro render final
+  await initBoardFromAPI(); 
   render();
 })();
 
