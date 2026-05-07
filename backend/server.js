@@ -6,32 +6,35 @@ const admin = require('firebase-admin');
 const app = express();
 const port = process.env.PORT || 4000;
 
-// CORS - permite todas as origens (desenvolvimento)
 app.use(cors());
 app.use(express.json());
 
-// Carrega credenciais do Firebase
-console.log("🔍 Carregando credenciais do Firebase da variável de ambiente...");
-
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  console.error("❌ ERRO CRÍTICO: GOOGLE_APPLICATION_CREDENTIALS_JSON não encontrada!");
-  process.exit(1); // Encerra o app se a variável não existir
+// Carrega as credenciais da variável de ambiente (Fly.io) ou do arquivo local
+let credentials;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  try {
+    credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    console.log('✅ Credenciais carregadas da variável GOOGLE_APPLICATION_CREDENTIALS_JSON');
+  } catch (err) {
+    console.error('❌ Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
+    process.exit(1);
+  }
+} else {
+  try {
+    credentials = require('./serviceAccountKey.json');
+    console.log('✅ Credenciais carregadas do arquivo local');
+  } catch (err) {
+    console.error('❌ Nenhuma credencial encontrada. Defina GOOGLE_APPLICATION_CREDENTIALS_JSON');
+    process.exit(1);
+  }
 }
 
-let serviceAccount = null;
-try {
-  serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-} catch (e) {
-  console.error("❌ ERRO CRÍTICO: JSON inválido em GOOGLE_APPLICATION_CREDENTIALS_JSON", e.message);
-  process.exit(1);
-}
-
+// Inicializa o Firebase Admin
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(credentials)
 });
 const db = admin.firestore();
-console.log("✅ Firebase Admin inicializado com sucesso!");
-
+console.log('🔥 Firebase Admin inicializado');
 
 // Rota de teste
 app.get('/tarefas', async (req, res) => {
@@ -45,7 +48,22 @@ app.get('/tarefas', async (req, res) => {
   }
 });
 
-// 🚨 IMPORTANTE: escutar em '0.0.0.0' e porta correta
+// Rota para criar tarefa (exemplo)
+app.post('/tarefas', async (req, res) => {
+  try {
+    const { titulo, coluna } = req.body;
+    const docRef = await db.collection('tarefas').add({
+      titulo,
+      coluna,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.status(201).json({ id: docRef.id, titulo, coluna });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ⚠️ ESCUTA EM 0.0.0.0 (obrigatório para Fly.io)
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${port}`);
 });
