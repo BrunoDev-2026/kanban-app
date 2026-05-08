@@ -69,6 +69,47 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// PUT /tarefas/:id – atualizar uma tarefa existente
+app.put('/tarefas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, coluna } = req.body;
+
+    const tarefaRef = db.collection('tarefas').doc(id);
+    const doc = await tarefaRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ erro: 'Tarefa não encontrada' });
+    }
+
+    await tarefaRef.update({ titulo, coluna });
+    res.json({ id, titulo, coluna });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// DELETE /tarefas/:id – remover uma tarefa
+app.delete('/tarefas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const tarefaRef = db.collection('tarefas').doc(id);
+    const doc = await tarefaRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ erro: 'Tarefa não encontrada' });
+    }
+
+    await tarefaRef.delete();
+    res.json({ mensagem: 'Tarefa removida com sucesso' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // --- Inicia o servidor escutando em todas as interfaces ---
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${port}`);
