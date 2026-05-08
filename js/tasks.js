@@ -1,129 +1,234 @@
-/**
- * MB FLOWBOARD — js/tasks.js
- * CRUD de tarefas e colunas
- * Criar · Editar · Arquivar · Restaurar · Excluir
- */
-
+// js/tasks.js - Versão corrigida
 'use strict';
 
-/* ── Estado temporário do modal de card ── */
-let editingCardId    = null;
+// Estado global do modal
+let editingCardId = null;
 let editingCardColId = null;
 let selectedPriority = 'low';
-let tempChecklist    = [];
+let tempChecklist = [];
 
-/* ── Estado do modal de coluna ── */
-let editingColId  = null;
-let selectedColor = '#6C63FF';
-
-/* ── Estado do modal de confirmação ── */
-let confirmCallback = null;
-
-/**
- * Abre o modal de nova tarefa ou edição
- * @param {string} colId - ID da coluna destino
- * @param {string|null} cardId - ID do card a editar (null = novo)
- * @param {Object} state - Estado global
- */
+// ==================== MODAL CARD ====================
 function openCardModal(colId, cardId = null, state) {
   editingCardColId = colId;
-  editingCardId    = cardId;
+  editingCardId = cardId;
 
-  document.getElementById('cardModalTitle').textContent = cardId ? 'Editar Tarefa' : 'Nova Tarefa';
+  const modalTitle = document.getElementById('cardModalTitle');
+  if (modalTitle) modalTitle.textContent = cardId ? 'Editar Tarefa' : 'Nova Tarefa';
+
+  // Reset prioridade
   selectedPriority = 'low';
-
-  if (cardId) {
-    const col  = state.columns.find(c => c.id === colId);
-    const card = col?.cards.find(k => k.id === cardId);
-    if (card) {
-      document.getElementById('cardTitleInput').value = card.title;
-      document.getElementById('cardDescInput').value  = card.desc  || '';
-      document.getElementById('cardDateInput').value  = card.date  || '';
-      document.getElementById('cardTagsInput').value  = (card.tags || []).join(', ');
-      tempChecklist    = JSON.parse(JSON.stringify(card.checklist || []));
-      selectedPriority = card.priority || 'low';
-    }
-  } else {
-    document.getElementById('cardTitleInput').value = '';
-    document.getElementById('cardDescInput').value  = '';
-    document.getElementById('cardDateInput').value  = '';
-    document.getElementById('cardTagsInput').value  = '';
-    tempChecklist = [];
-  }
-
-  renderModalChecklist();
-
-  // Atualiza botões de prioridade
   document.querySelectorAll('.priority-btn').forEach(btn => {
     const isActive = btn.dataset.priority === selectedPriority;
     btn.classList.toggle('active', isActive);
     btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
   });
 
+  if (cardId) {
+    const col = state.columns.find(c => c.cards.some(k => k.id === cardId));
+    const card = col?.cards.find(k => k.id === cardId);
+    if (card) {
+      document.getElementById('cardTitleInput').value = card.title;
+      document.getElementById('cardDescInput').value = card.desc || '';
+      document.getElementById('cardDateInput').value = card.date || '';
+      document.getElementById('cardTagsInput').value = (card.tags || []).join(', ');
+      tempChecklist = JSON.parse(JSON.stringify(card.checklist || []));
+      selectedPriority = card.priority || 'low';
+    }
+  } else {
+    document.getElementById('cardTitleInput').value = '';
+    document.getElementById('cardDescInput').value = '';
+    document.getElementById('cardDateInput').value = '';
+    document.getElementById('cardTagsInput').value = '';
+    tempChecklist = [];
+  }
+
+  renderModalChecklist();
   openModal('cardModal');
   setTimeout(() => document.getElementById('cardTitleInput').focus(), 120);
 }
 
-/**
- * Salva o card (criar ou editar)
- * @param {Object} state - Estado global (mutado in-place)
- * @param {Function} renderFn
- */
-function saveCard(state, renderFn) {
-  const titleInput = document.getElementById('cardTitleInput');
-  const title = titleInput.value.trim();
-
+// ==================== SALVAR (criar/editar) ====================
+async function saveCard(state, renderFn) {
+  const title = document.getElementById('cardTitleInput').value.trim();
   if (!title) {
     showToast('⚠️ O título é obrigatório.');
-    titleInput.focus();
-    return;
-  }
-  if (title.length > 80) {
-    showToast('⚠️ Título muito longo (máx. 80 caracteres).');
     return;
   }
 
   const desc = document.getElementById('cardDescInput').value.trim().slice(0, 500);
   const date = document.getElementById('cardDateInput').value;
   const tags = parseTags(document.getElementById('cardTagsInput').value);
-  const col  = state.columns.find(c => c.id === editingCardColId);
+  const col = state.columns.find(c => c.id === editingCardColId);
   if (!col) return;
 
-  if (editingCardId) {
-    const card = col.cards.find(k => k.id === editingCardId);
-    if (card) {
-      card.title     = title;
-      card.desc      = desc;
-      card.date      = date;
-      card.tags      = tags;
-      card.priority  = selectedPriority;
-      card.checklist = tempChecklist;
+  try {
+    if (editingCardId) {
+      // Atualizar tarefa existente (PUT)
+      await window.API.updateTarefa(editingCardId, title, col.title);
+      // Atualiza estado local
+      const card = col.cards.find(k => k.id === editingCardId);
+      if (card) {
+        card.title = title;
+        card.desc = desc;
+        card.date = date;
+        card.tags = tags;
+        card.priority = selectedPriority;
+        card.checklist = tempChecklist;
+      }
+      showToast('✅ Tarefa atualizada!');
+    } else {
+      // Criar nova tarefa (POST)
+      const nova = await window.API.createTarefa(title, col.title);
+      col.cards.push({
+        id: nova.id,
+        title,
+        desc,
+        date,
+        tags,
+        priority: selectedPriority,
+        checklist: tempChecklist,
+        totalFocusTime: 0,
+        createdAt: new Date().toISOString()
+      });
+      showToast('🎉 Tarefa criada!');
     }
-    showToast('✅ Tarefa atualizada!');
-  } else {
-    col.cards.push({
-      id:            uid(),
-      title,
-      desc,
-      date,
-      tags,
-      priority:      selectedPriority,
-      checklist:     tempChecklist,
-      totalFocusTime: 0,
-      createdAt:     new Date().toISOString()
-    });
-    showToast('🎉 Tarefa criada!');
+    renderFn();
+    closeModal('cardModal');
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao salvar tarefa. Tente novamente.');
   }
-
-  saveState(state);
-  renderFn();
-  closeModal('cardModal');
-  editingCardId = editingCardColId = null;
 }
 
-/**
- * Renderiza o checklist dentro do modal
- */
+// ==================== ARQUIVAR (DELETE) ====================
+async function archiveCard(colId, cardId, state, renderFn, stopPomodoroFn) {
+  const col = state.columns.find(c => c.id === colId);
+  if (!col) return;
+  const idx = col.cards.findIndex(c => c.id === cardId);
+  if (idx === -1) return;
+  const [card] = col.cards.splice(idx, 1);
+
+  try {
+    await window.API.deleteTarefa(cardId);
+    card.archivedAt = new Date().toISOString();
+    state.archived.push(card);
+    renderFn();
+    showToast('📦 Tarefa arquivada!');
+    if (stopPomodoroFn) stopPomodoroFn(cardId);
+  } catch (err) {
+    console.error(err);
+    // Reverte remoção local
+    col.cards.splice(idx, 0, card);
+    showToast('❌ Erro ao arquivar tarefa');
+  }
+}
+
+// ==================== MODAL COLUNA ====================
+let editingColId = null;
+
+function openColumnModal(colId, state) {
+  editingColId = colId || null;
+  const col = colId ? state.columns.find(c => c.id === colId) : null;
+
+  document.getElementById('columnModalTitle').textContent = col ? 'Editar Coluna' : 'Nova Coluna';
+  document.getElementById('columnNameInput').value = col ? col.title : '';
+  document.getElementById('columnLimitInput').value = col ? col.limit : 0;
+
+  // Cor selecionada
+  document.querySelectorAll('.color-dot').forEach(dot => {
+    dot.classList.toggle('selected', col && dot.dataset.color === col.color);
+  });
+
+  openModal('columnModal');
+  setTimeout(() => document.getElementById('columnNameInput').focus(), 120);
+}
+
+// ==================== INIT TASKS EVENTS ====================
+function initTasksEvents(state, renderFn, stopPomodoroFn) {
+  // Botões do modal de tarefa
+  document.getElementById('saveCardBtn').addEventListener('click', () => saveCard(state, renderFn));
+  document.getElementById('cancelCardModal').addEventListener('click', () => closeModal('cardModal'));
+  document.getElementById('closeCardModal').addEventListener('click', () => closeModal('cardModal'));
+
+  // Priority picker
+  document.querySelectorAll('.priority-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedPriority = btn.dataset.priority;
+      document.querySelectorAll('.priority-btn').forEach(b => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-checked', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // Checklist: adicionar item
+  document.getElementById('addChecklistItemBtn').addEventListener('click', () => {
+    const input = document.getElementById('newChecklistItem');
+    const text = input.value.trim();
+    if (!text) return;
+    tempChecklist.push({ text, completed: false });
+    input.value = '';
+    renderModalChecklist();
+  });
+  document.getElementById('newChecklistItem').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('addChecklistItemBtn').click();
+    }
+  });
+
+  // Modal coluna
+  document.getElementById('addColumnBtn').addEventListener('click', () => openColumnModal(null, state));
+  document.getElementById('closeColumnModal').addEventListener('click', () => closeModal('columnModal'));
+  document.getElementById('cancelColumnModal').addEventListener('click', () => closeModal('columnModal'));
+  document.getElementById('saveColumnBtn').addEventListener('click', () => {
+    const name = document.getElementById('columnNameInput').value.trim();
+    if (!name) { showToast('⚠️ Nome da coluna é obrigatório.'); return; }
+    const limit = parseInt(document.getElementById('columnLimitInput').value) || 0;
+    const selectedDot = document.querySelector('.color-dot.selected');
+    const color = selectedDot ? selectedDot.dataset.color : '#6C63FF';
+
+    if (editingColId) {
+      const col = state.columns.find(c => c.id === editingColId);
+      if (col) { col.title = name; col.limit = limit; col.color = color; }
+      showToast('✏️ Coluna atualizada!');
+    } else {
+      state.columns.push({ id: uid(), title: name, color, limit, cards: [] });
+      showToast('✅ Coluna criada!');
+    }
+    saveState(state);
+    renderFn();
+    closeModal('columnModal');
+  });
+
+  // Color dots na modal de coluna
+  document.querySelectorAll('#columnModal .color-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      document.querySelectorAll('#columnModal .color-dot').forEach(d => d.classList.remove('selected'));
+      dot.classList.add('selected');
+    });
+  });
+
+  // Modal de confirmação
+  document.getElementById('okConfirm').addEventListener('click', () => {
+    closeModal('confirmModal');
+    if (typeof confirmCallback === 'function') confirmCallback();
+    confirmCallback = null;
+  });
+  document.getElementById('cancelConfirm').addEventListener('click', () => {
+    closeModal('confirmModal');
+    confirmCallback = null;
+  });
+}
+
+// ==================== EXPOSIÇÃO GLOBAL ====================
+window.openCardModal = openCardModal;
+window.saveCard = saveCard;
+window.archiveCard = archiveCard;
+window.openColumnModal = openColumnModal;
+window.initTasksEvents = initTasksEvents;
+
+// Helper para renderizar checklist (se necessário)
 function renderModalChecklist() {
   const area = document.getElementById('checklistArea');
   if (!area) return;
@@ -132,14 +237,14 @@ function renderModalChecklist() {
     const div = document.createElement('div');
     div.className = 'checklist-input-group';
     div.innerHTML = `
-      <div class="chk-wrapper"><i data-lucide="${item.completed ? 'check-square' : 'square'}" size="16"></i><input type="checkbox" ${item.completed ? 'checked' : ''} id="chk_${index}"></div>
-      <input type="text" value="${escapeHtml(item.text)}" style="flex:1" placeholder="Item...">
-      <button class="btn-close" title="Remover">×</button>
+      <input type="checkbox" ${item.completed ? 'checked' : ''}>
+      <input type="text" value="${escapeHtml(item.text)}" style="flex:1">
+      <button class="btn-close" data-index="${index}">×</button>
     `;
-    div.querySelector('input[type="checkbox"]').addEventListener('change', e => {
+    div.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
       tempChecklist[index].completed = e.target.checked;
     });
-    div.querySelector('input[type="text"]').addEventListener('input', e => {
+    div.querySelector('input[type="text"]').addEventListener('input', (e) => {
       tempChecklist[index].text = e.target.value;
     });
     div.querySelector('.btn-close').addEventListener('click', () => {
@@ -151,209 +256,10 @@ function renderModalChecklist() {
   lucide.createIcons();
 }
 
-/**
- * Arquiva um card (move para state.archived)
- * @param {string} colId
- * @param {string} cardId
- * @param {Object} state
- * @param {Function} renderFn
- * @param {Function} stopPomodoroFn
- */
-function archiveCard(colId, cardId, state, renderFn, stopPomodoroFn) {
-  const col = state.columns.find(c => c.id === colId);
-  if (!col) return;
-  const cardIdx = col.cards.findIndex(c => c.id === cardId);
-  if (cardIdx === -1) return;
-  const [card] = col.cards.splice(cardIdx, 1);
-  card.archivedAt = new Date().toISOString();
-  state.archived.push(card);
-  saveState(state);
-  renderFn();
-  showToast('📦 Tarefa arquivada!');
-  if (stopPomodoroFn) stopPomodoroFn(cardId);
-}
+let confirmCallback = null;
 
-/**
- * Abre o modal de nova coluna ou edição
- * @param {string|null} colId - ID da coluna a editar (null = nova)
- * @param {Object} state
- */
-function openColumnModal(colId = null, state) {
-  editingColId = colId;
-  const titleEl    = document.getElementById('columnModalTitle');
-  const nameInput  = document.getElementById('columnNameInput');
-  const limitInput = document.getElementById('columnLimitInput');
-
-  if (colId) {
-    const col = state.columns.find(c => c.id === colId);
-    if (!col) return;
-    titleEl.textContent = 'Editar Coluna';
-    nameInput.value     = col.title;
-    limitInput.value    = col.limit || 0;
-    selectedColor       = col.color;
-  } else {
-    titleEl.textContent = 'Nova Coluna';
-    nameInput.value     = '';
-    limitInput.value    = 0;
-    selectedColor       = '#6C63FF';
-  }
-
-  document.querySelectorAll('.color-dot').forEach(d => {
-    const isSelected = d.dataset.color === selectedColor;
-    d.classList.toggle('selected', isSelected);
-    d.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-  });
-
-  openModal('columnModal');
-  setTimeout(() => nameInput.focus(), 120);
-}
-
-/**
- * Salva uma coluna (criar ou editar)
- * @param {Object} state
- * @param {Function} renderFn
- */
-function saveColumn(state, renderFn) {
-  const name  = document.getElementById('columnNameInput').value.trim();
-  const limit = parseInt(document.getElementById('columnLimitInput').value) || 0;
-
-  if (!name) {
-    showToast('⚠️ O nome da coluna é obrigatório.');
-    document.getElementById('columnNameInput').focus();
-    return;
-  }
-  if (name.length > 40) {
-    showToast('⚠️ Nome muito longo (máx. 40 caracteres).');
-    return;
-  }
-
-  if (editingColId) {
-    const col = state.columns.find(c => c.id === editingColId);
-    if (col) { col.title = name; col.color = selectedColor; col.limit = limit; }
-    showToast('✏️ Coluna atualizada!');
-  } else {
-    state.columns.push({ id: uid(), title: name, color: selectedColor, limit, cards: [] });
-    showToast('🎉 Coluna criada!');
-  }
-
-  saveState(state);
-  renderFn();
-  closeModal('columnModal');
-  editingColId = null;
-}
-
-/**
- * Abre o modal de confirmação genérico
- * @param {string} message
- * @param {Function} cb - Callback ao confirmar
- */
-function openConfirm(message, cb) {
+window.openConfirm = function(message, cb) {
   confirmCallback = cb;
-  document.getElementById('confirmMessage').innerHTML = `<i data-lucide="alert-triangle" size="32" style="color:var(--accent2); margin-bottom:12px;"></i><br>${message}`;
+  document.getElementById('confirmMessage').textContent = message;
   openModal('confirmModal');
-  lucide.createIcons();
-}
-
-/**
- * Inicializa todos os event listeners dos modais de tasks/colunas
- * @param {Object} state
- * @param {Function} renderFn
- * @param {Function} stopPomodoroFn
- */
-function initTasksEvents(state, renderFn, stopPomodoroFn) {
-
-  // ── Coluna ──
-  document.getElementById('addColumnBtn').addEventListener('click', () => openColumnModal(null, state));
-  document.getElementById('closeColumnModal').addEventListener('click', () => closeModal('columnModal'));
-  document.getElementById('cancelColumnModal').addEventListener('click', () => closeModal('columnModal'));
-  document.getElementById('saveColumnBtn').addEventListener('click', () => saveColumn(state, renderFn));
-  document.getElementById('columnNameInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveColumn(state, renderFn);
-  });
-
-  // Color dots (coluna)
-  document.querySelectorAll('.color-dot').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedColor = btn.dataset.color;
-      document.querySelectorAll('.color-dot').forEach(d => {
-        const isSelected = d === btn;
-        d.classList.toggle('selected', isSelected);
-        d.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-      });
-    });
-  });
-
-  // ── Card ──
-  document.getElementById('closeCardModal').addEventListener('click', () => closeModal('cardModal'));
-  document.getElementById('cancelCardModal').addEventListener('click', () => closeModal('cardModal'));
-  document.getElementById('saveCardBtn').addEventListener('click', () => saveCard(state, renderFn));
-  document.getElementById('cardTitleInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveCard(state, renderFn);
-  });
-
-  // Prioridade
-  document.querySelectorAll('.priority-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedPriority = btn.dataset.priority;
-      document.querySelectorAll('.priority-btn').forEach(b => {
-        const isActive = b === btn;
-        b.classList.toggle('active', isActive);
-        b.setAttribute('aria-checked', isActive ? 'true' : 'false');
-      });
-    });
-  });
-
-  // Checklist
-  document.getElementById('addChecklistItemBtn').addEventListener('click', () => {
-    const input = document.getElementById('newChecklistItem');
-    if (input.value.trim()) {
-      tempChecklist.push({ text: input.value.trim(), completed: false });
-      input.value = '';
-      renderModalChecklist();
-    }
-  });
-  document.getElementById('newChecklistItem').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('addChecklistItemBtn').click();
-  });
-
-  // ── Confirmar ──
-  document.getElementById('cancelConfirm').addEventListener('click', () => {
-    closeModal('confirmModal');
-    confirmCallback = null;
-  });
-  document.getElementById('okConfirm').addEventListener('click', () => {
-    closeModal('confirmModal');
-    if (typeof confirmCallback === 'function') {
-      confirmCallback();
-      confirmCallback = null;
-    }
-  });
-
-  // ── Delegação de eventos nos cards do board ──
-  document.getElementById('board').addEventListener('click', e => {
-    const editBtn = e.target.closest('.card-btn.edit');
-    const arcBtn  = e.target.closest('.card-btn.archive');
-
-    if (editBtn) {
-      const cardId = editBtn.dataset.card;
-      const col = state.columns.find(c => c.cards.some(k => k.id === cardId));
-      if (col) openCardModal(col.id, cardId, state);
-      return;
-    }
-
-    if (arcBtn) {
-      const cardId = arcBtn.dataset.card;
-      const col    = state.columns.find(c => c.cards.some(k => k.id === cardId));
-      if (col) archiveCard(col.id, cardId, state, renderFn, stopPomodoroFn);
-    }
-  });
-
-  // ── Fechar modais clicando no overlay ──
-  ['columnModal','cardModal','confirmModal','emojiModal','archiveModal','profileModal'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('click', e => {
-      if (e.target.id === id) closeModal(id);
-    });
-  });
-}
+};

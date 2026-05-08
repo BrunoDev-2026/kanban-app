@@ -157,8 +157,23 @@ function onDrop(e, state, renderFn) {
 
   // Persistência com histórico
   saveState(state, true);
-  renderFn();
-  showToast('✨ Tarefa movida!');
+
+  // Sincroniza com a API
+  (async () => {
+    try {
+      const movedCard = tgtCol.cards[insertIdx] || card; // fallback
+      const backendId = movedCard?.backendId || movedCard?.id || card?.backendId || card?.id;
+      if (window.API?.updateTarefa && backendId) {
+        await window.API.updateTarefa(backendId, movedCard.title, tgtCol.title);
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('⚠️ Erro ao mover tarefa (API).');
+    } finally {
+      renderFn();
+      showToast('✨ Tarefa movida!');
+    }
+  })();
 }
 
 /**

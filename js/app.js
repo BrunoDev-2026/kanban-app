@@ -9,15 +9,49 @@
 /* ════════════════════════════════════════════
    ESTADO GLOBAL
 ════════════════════════════════════════════ */
-// Referência ao estado global (carrega do localStorage)
-let state = loadState();
-// Garante que campos opcionais existam para compatibilidade
-state.profile = state.profile || { name: 'Usuário', color: '#6C63FF', focusTime: 25, breakTime: 5 };
-state.profile.focusTime = state.profile.focusTime ?? 25;
-state.profile.breakTime = state.profile.breakTime ?? 5;
-state.history = state.history || {};
-state.lastView = state.lastView || 'board';
-state.archived = Array.isArray(state.archived) ? state.archived : [];
+let state = loadState ? loadState() : {
+  title: 'Meu Quadro',
+  emoji: '🚀',
+  profile: { name: 'Usuário', color: '#6C63FF', focusTime: 25, breakTime: 5 },
+  columns: [],
+  archived: [],
+  history: {}
+};
+
+// Converte lista de tarefas da API para estrutura de colunas
+function tarefasToColumns(tarefas) {
+  const columnDefs = [
+    { id: 'todo', title: 'A Fazer', color: '#6C63FF', limit: 0 },
+    { id: 'progress', title: 'Em Progresso', color: '#FFB347', limit: 0 },
+    { id: 'review', title: 'Revisão', color: '#4FC3F7', limit: 0 },
+    { id: 'done', title: 'Concluído', color: '#43D9AD', limit: 0 }
+  ];
+  const columns = columnDefs.map(col => ({ ...col, cards: [] }));
+  tarefas.forEach(task => {
+    const col = columns.find(c => c.title === task.coluna);
+    if (col) {
+      col.cards.push({
+        id: task.id,
+        title: task.titulo,
+        desc: '',
+        priority: 'low',
+        date: '',
+        tags: [],
+        checklist: [],
+        totalFocusTime: 0,
+        createdAt: task.createdAt || new Date().toISOString()
+      });
+    }
+  });
+  return columns;
+}
+
+async function loadInitialData() {
+  // Estado já foi carregado do localStorage na inicialização.
+  // Só renderiza — não sobrescreve dados locais com estado vazio da API.
+  render();
+}
+
 
 
 /** Controla transições de UI para evitar reflows pesados e gerenciar skeletons */
@@ -672,7 +706,7 @@ function closeModal(id) {
 /* ════════════════════════════════════════════
    INICIALIZAÇÃO
 ════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Tema ──
   const savedTheme = loadTheme();
@@ -876,8 +910,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ── Render Inicial ──
-  render();
+  await loadInitialData();
+
   startDashboardAutoRefresh(() => {
     if (showDashboard) renderDashboard(state, document.getElementById('dashboardSection'));
   });
