@@ -9,61 +9,63 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// Carrega as credenciais da variável de ambiente (Fly.io) ou do arquivo local
-let credentials;
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  try {
-    credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    console.log('✅ Credenciais carregadas da variável GOOGLE_APPLICATION_CREDENTIALS_JSON');
-  } catch (err) {
-    console.error('❌ Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
-    process.exit(1);
+// Configuração do Firebase Admin
+let serviceAccount;
+try {
+  // Prioriza a variável de ambiente no Fly.io
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    console.log('✅ Credenciais carregadas da variável de ambiente.');
+  } else {
+    // Fallback para desenvolvimento local
+    serviceAccount = require('./serviceAccountKey.json');
+    console.log('✅ Credenciais carregadas do arquivo local.');
   }
-} else {
-  try {
-    credentials = require('./serviceAccountKey.json');
-    console.log('✅ Credenciais carregadas do arquivo local');
-  } catch (err) {
-    console.error('❌ Nenhuma credencial encontrada. Defina GOOGLE_APPLICATION_CREDENTIALS_JSON');
-    process.exit(1);
-  }
+} catch (error) {
+  console.error('❌ Erro fatal ao configurar o Firebase:', error);
+  process.exit(1);
 }
 
-// Inicializa o Firebase Admin
 admin.initializeApp({
-  credential: admin.credential.cert(credentials)
+  credential: admin.credential.cert(serviceAccount)
 });
-const db = admin.firestore();
-console.log('🔥 Firebase Admin inicializado');
 
-// Rota de teste
+// 🎯 Força o uso do banco de dados (default)
+const db = admin.firestore('(default)');
+console.log('🔥 Firestore conectado ao banco (default)');
+
+// Rota de teste e listagem de tarefas
 app.get('/tarefas', async (req, res) => {
   try {
-    const snapshot = await db.collection('tarefas').get();
-    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json(tarefas);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: err.message });
-  }
-});
+    const colRef = db.collection('tarefas');
+    const snapshot = await colRef.get();
 
-// Rota para criar tarefa (exemplo)
-app.post('/tarefas', async (req, res) => {
-  try {
-    const { titulo, coluna } = req.body;
-    const docRef = await db.collection('tarefas').add({
-      titulo,
-      coluna,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    if (snapshot.empty) {
+      console.log('Nenhuma tarefa encontrada. Retornando array vazio.');
+      return res.status(200).json([]); // Garante resposta 200 com array vazio
+    }
+
+    const tarefas = [];
+    snapshot.forEach(doc => {
+      tarefas.push({
+        id: doc.id,
+        ...doc.data()
+      });
     });
-    res.status(201).json({ id: docRef.id, titulo, coluna });
-  } catch (err) {
-    res.status(500).json({ erro: err.message });
+
+    res.status(200).json(tarefas);
+  } catch (error) {
+    console.error('Erro ao buscar tarefas:', error);
+    res.status(500).json({ erro: 'Erro interno ao buscar tarefas.', details: error.message });
   }
 });
 
-// ⚠️ ESCUTA EM 0.0.0.0 (obrigatório para Fly.io)
+// 🔥 NOVA: Rota de teste simples (apenas para verificar se o servidor está online)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${port}`);
+  console.log(`🔗 Acesse: http://localhost:${port}/tarefas`);
 });
