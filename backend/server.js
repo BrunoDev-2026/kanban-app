@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 // --- As importações corretas para o Firebase Admin SDK moderno ---
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -9,8 +10,14 @@ const { getFirestore } = require('firebase-admin/firestore');
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5500', 'http://127.0.0.1:5500'] // Permite o Live Server
+}));
 app.use(express.json());
+
+// --- Servir arquivos estáticos do frontend ---
+// Como server.js está em /backend, subimos um nível para encontrar o index.html
+app.use(express.static(path.join(__dirname, '..')));
 
 // --- Inicialização do Firebase ---
 let serviceAccount;
