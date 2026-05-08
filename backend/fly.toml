@@ -1,32 +1,12 @@
-# fly.toml app configuration file generated for backend-thrumming-shape-9932 on 2026-05-06T23:24:14-03:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'backend-thrumming-shape-9932'
-primary_region = 'gru'
-
-[build]
+app = "kanban-api-node"
 
 [[services]]
-  internal_port = 4000
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+  internal_port = 3000
+  protocol = "tcp"
 
   [[services.ports]]
     port = 80
-    handlers = ['http']
-
+    handlers = ["http"]
   [[services.ports]]
     port = 443
-    handlers = ['tls', 'http']
-
-
-[[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+    handlers = ["tls", "http"]

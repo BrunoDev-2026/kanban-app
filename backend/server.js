@@ -7,7 +7,7 @@ const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -19,10 +19,12 @@ try {
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
     console.log('✅ Credenciais carregadas da variável de ambiente.');
-  } else {
+  } else if (require('fs').existsSync('./serviceAccountKey.json')) {
     // Fallback para o arquivo local durante o desenvolvimento
     serviceAccount = require('./serviceAccountKey.json');
     console.log('✅ Credenciais carregadas do arquivo local.');
+  } else {
+    throw new Error('Credenciais do Firebase não encontradas (Env ou Arquivo).');
   }
 } catch (error) {
   console.error('❌ Erro fatal ao carregar as credenciais:', error);
@@ -40,6 +42,13 @@ const db = getFirestore(firebaseApp, '(default)');
 console.log('🔥 Firebase Admin inicializado e conectado ao banco (default).');
 
 // --- Suas rotas da API (mantenha como estão) ---
+app.get('/', (req, res) => {
+  res.json({ 
+    mensagem: "Kanban API está rodando!", 
+    endpoints: ["/tarefas", "/health"] 
+  });
+});
+
 app.get('/tarefas', async (req, res) => {
   try {
     const snapshot = await db.collection('tarefas').get();

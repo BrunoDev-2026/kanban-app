@@ -18,14 +18,6 @@
  * }
  */
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore"; // Added Firestore imports
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 'use strict';
 
 /* ════════════════════════════════════════════
@@ -251,36 +243,33 @@ function loadState() {
   }
 }
 
-function saveState() {
+/**
+ * Salva o estado LOCAL (não relacionado a tarefas) no localStorage.
+ * Tarefas são gerenciadas pela API.
+ */
+function saveLocalState() {
   try {
-    localStorage.setItem('kanflow_state', JSON.stringify(state));
+    const localState = {
+      title: state.title,
+      emoji: state.emoji,
+      profile: state.profile,
+      archived: state.archived,
+      history: state.history,
+      // Não salva cards aqui, pois são gerenciados pela API
+      columns: state.columns.map(col => ({
+        id: col.id, title: col.title, color: col.color, limit: col.limit, cards: []
+      }))
+    };
+    localStorage.setItem('kanflow_state', JSON.stringify(localState));
   } catch (e) {
     showToast('⚠️ Erro ao salvar. Armazenamento cheio?');
   }
 }
-
 /* ════════════════════════════════════════════
    ESTADO GLOBAL
 ════════════════════════════════════════════ */
 const API_URL = "https://backend-thrumming-shape-9932.fly.dev/tarefas";
 const API_KEY = "minha-chave-secreta-2026";
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAp2UrjxlrLY7Hs-W3QGc14iNR5ufVtGyY",
-  authDomain: "kanban-app-48af6.firebaseapp.com",
-  projectId: "kanban-app-48af6",
-  storageBucket: "kanban-app-48af6.firebasestorage.app",
-  messagingSenderId: "702575256220",
-  appId: "1:702575256220:web:a20919de6b4de8667d4359",
-  measurementId: "G-5XDWK59TMY"
-};
-
-// Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig); // Renamed 'app' to 'firebaseApp' to avoid conflict with global 'app' variable if any
-const analytics = getAnalytics(firebaseApp);
-const db = getFirestore(firebaseApp); // Get Firestore instance
 
 // =========================
 // API (Node/Express) - Conexão com Fly.dev
@@ -295,10 +284,6 @@ function apiUrlForId(id) {
  */
 async function handleApiResponse(res) {
   setLoading(false);
-  if (res.status === 401) {
-    showToast('🚫 Chave de API inválida.');
-    throw new Error('Não autorizado');
-  }
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.erro || `Erro: ${res.status}`);
@@ -308,7 +293,7 @@ async function handleApiResponse(res) {
 
 async function apiGetTarefas() {
   setLoading(true);
-  const res = await fetch(API_URL, { headers: { 'x-api-key': API_KEY } });
+  const res = await fetch(API_URL);
   return handleApiResponse(res);
 }
 
@@ -316,7 +301,7 @@ async function apiCreateTarefa({ titulo, coluna }) {
   setLoading(true);
   const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ titulo, coluna })
   });
   return handleApiResponse(res);
@@ -326,7 +311,7 @@ async function apiUpdateTarefa({ id, titulo, coluna }) {
   setLoading(true);
   const res = await fetch(apiUrlForId(id), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ titulo, coluna })
   });
   return handleApiResponse(res);
@@ -334,9 +319,8 @@ async function apiUpdateTarefa({ id, titulo, coluna }) {
 
 async function apiDeleteTarefa(id) {
   setLoading(true);
-  const res = await fetch(apiUrlForId(id), { 
-    method: 'DELETE',
-    headers: { 'x-api-key': API_KEY }
+  const res = await fetch(apiUrlForId(id), {
+    method: 'DELETE'
   });
   return handleApiResponse(res);
 }
@@ -460,7 +444,7 @@ function backendColunaToUIColumnTitle(coluna) {
 
 async function initBoardFromAPI() {
   try {
-    const tarefas = await apiGetTarefas();
+    const tarefas = await apiGetTarefas(); // Já usa apiGetTarefas
     if (!Array.isArray(tarefas)) return;
 
     // limpa cards, mas mantém colunas/profile/emoji/tema do localStorage
@@ -482,13 +466,13 @@ async function initBoardFromAPI() {
 
       col.cards.push({
         id,
-        title: titulo,
-        desc: '',
-        priority: 'low',
-        date: '',
-        tags: [],
-        checklist: [],
-        totalFocusTime: 0
+        title: tarefa.titulo,
+        desc: tarefa.descricao || '',
+        priority: tarefa.prioridade || 'low',
+        date: tarefa.data || '',
+        tags: tarefa.tags || [],
+        checklist: tarefa.checklist || [],
+        totalFocusTime: tarefa.totalFocusTime || 0
       });
     });
 
@@ -496,7 +480,7 @@ async function initBoardFromAPI() {
     render();
   } catch (e) {
     console.warn('API init failed, falling back to localStorage state:', e);
-    // mantém state atual (carregado do localStorage) e renderiza
+    // mantém state atual (carregado do localStorage) e renderiza (fallback)
     render();
   }
 }
@@ -1065,10 +1049,16 @@ async function onDrop(e) {
     const movedCard = tgtCol.cards[insertIdx]?.id ? tgtCol.cards[insertIdx] : card;
     if (movedCard && movedCard.id) {
       const colunaBackend = uiColumnTitleToBackendColuna(tgtCol.title);
-      await firebaseUpdateTarefa({
+      await apiUpdateTarefa({ // Usando apiUpdateTarefa
         id: movedCard.id,
         titulo: movedCard.title,
-        coluna: colunaBackend
+        coluna: colunaBackend,
+        descricao: movedCard.desc,
+        prioridade: movedCard.priority,
+        data: movedCard.date,
+        tags: movedCard.tags,
+        checklist: movedCard.checklist,
+        totalFocusTime: movedCard.totalFocusTime
       });
     }
   } catch (e) {
@@ -1327,10 +1317,15 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
   if (editingCardId) {
     // Atualização via API (somente campos aceitos pelo backend do exemplo)
     try {
-      const updated = await apiUpdateTarefa({
+      const updated = await apiUpdateTarefa({ // Usando apiUpdateTarefa
         id: editingCardId,
         titulo: title,
-        coluna: movedColumnBackend
+        coluna: movedColumnBackend,
+        descricao: desc,
+        data: date,
+        prioridade: selectedPriority,
+        tags: tags,
+        checklist: tempChecklist
       });
       const card = col.cards.find(k => k.id === editingCardId);
       if (card) {
@@ -1340,7 +1335,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         card.tags     = tags;
         card.priority = selectedPriority;
         if (updated && updated._id) card.id = String(updated._id);
-        card.checklist = tempChecklist; // Update local checklist
+        card.checklist = tempChecklist;
       }
       showToast('✅ Tarefa atualizada!');
     } catch (e) {
@@ -1349,8 +1344,16 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
       return;
     }
   } else {
-    try {
-      const created = await firebaseCreateTarefa({ titulo: title, coluna: movedColumnBackend });
+    try { // Usando apiCreateTarefa
+      const created = await apiCreateTarefa({
+        titulo: title,
+        coluna: movedColumnBackend,
+        descricao: desc,
+        data: date,
+        prioridade: selectedPriority,
+        tags: tags,
+        checklist: tempChecklist
+      });
       const newId = created && (created._id || created.id);
       col.cards.push({
         id: newId ? String(newId) : uid(),
@@ -1359,8 +1362,8 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         date,
         tags,
         priority: selectedPriority
-      }); //
-      card.checklist = tempChecklist; // Include checklist
+      }); // Adiciona checklist ao novo card
+      col.cards[col.cards.length - 1].checklist = tempChecklist;
       showToast('🎉 Tarefa criada!');
     } catch (e) {
       console.error(e);
@@ -1465,14 +1468,14 @@ window.restoreFromArchive = function(cardId) {
     const targetCol = state.columns[0];
     const colunaBackend = uiColumnTitleToBackendColuna(targetCol.title);
     firebaseCreateTarefa({
-      titulo: card.title,
-      coluna: colunaBackend,
-      descricao: card.desc,
-      prioridade: card.priority,
-      data: card.date,
-      tags: card.tags,
-checklist: card.checklist,
-      totalFocusTime: card.totalFocusTime
+      titulo: card.title, // Usando apiCreateTarefa
+      coluna: colunaBackend, // Usando apiCreateTarefa
+      descricao: card.desc, // Usando apiCreateTarefa
+      prioridade: card.priority, // Usando apiCreateTarefa
+      data: card.date, // Usando apiCreateTarefa
+      tags: card.tags, // Usando apiCreateTarefa
+      checklist: card.checklist, // Usando apiCreateTarefa
+      totalFocusTime: card.totalFocusTime // Usando apiCreateTarefa
     }).then(createdCard => {
       card.id = createdCard._id; // Update the ID of the restored card with the new Firebase ID
       saveLocalState(); // Save local archived state
@@ -1488,7 +1491,7 @@ checklist: card.checklist,
       render();
     });
   } else {
-    saveLocalState(); // Save local archived state
+    saveLocalState(); // Salva estado local arquivado (sem chamada à API se não houver colunas)
     render();
     showToast('♻️ Tarefa restaurada! (Mas não há colunas ativas para ela)');
     openArchiveModal(); // Refresh
@@ -1634,17 +1637,17 @@ function activateTitleEdit() {
 // Limpar quadro
 document.getElementById('clearBoardBtn').addEventListener('click', () => {
   openConfirm('Deseja limpar todo o quadro? Isso excluirá todas as colunas e tarefas permanentemente.', () => {
-    // Delete all tasks from Firebase
+    // Delete all tasks via API
     setLoading(true);
     try {
-      const tarefasCol = collection(db, "tarefas");
-      const tarefaSnapshot = await getDocs(tarefasCol);
-      const deletePromises = tarefaSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      // Primeiro, busca todas as tarefas da API
+      const allTasks = await apiGetTarefas();
+      const deletePromises = allTasks.map(task => apiDeleteTarefa(task.id));
       await Promise.all(deletePromises);
-      showToast('🧹 Todas as tarefas excluídas do Firebase!');
+      showToast('🧹 Todas as tarefas excluídas da API!');
     } catch (e) {
-      console.error("Erro ao limpar tarefas no Firebase:", e);
-      showToast('❌ Erro ao limpar tarefas no Firebase.');
+      console.error("Erro ao limpar tarefas na API:", e);
+      showToast('❌ Erro ao limpar tarefas na API.');
       setLoading(false);
       return;
     } finally {
@@ -1721,7 +1724,7 @@ window.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
     // With Firebase, changes are saved immediately. This can just be a visual feedback.
-    // saveState(); // No longer saving full state to localStorage
+    // saveState(); // Não salva mais o estado completo no localStorage diretamente para tarefas
     showToast('💾 Alterações salvas!');
     showShortcutHUD('Salvar');
   }
