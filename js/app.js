@@ -7,9 +7,9 @@
 'use strict';
 
 /* ════════════════════════════════════════════
-   ESTADO GLOBAL
+   ESTADO GLOBAL E INICIALIZAÇÃO VIA API
 ════════════════════════════════════════════ */
-let state = loadState ? loadState() : {
+let state = {
   title: 'Meu Quadro',
   emoji: '🚀',
   profile: { name: 'Usuário', color: '#6C63FF', focusTime: 25, breakTime: 5 },
@@ -18,7 +18,7 @@ let state = loadState ? loadState() : {
   history: {}
 };
 
-// Converte lista de tarefas da API para estrutura de colunas
+/* Converte a lista de tarefas da API para o formato de colunas usado pelo app */
 function tarefasToColumns(tarefas) {
   const columnDefs = [
     { id: 'todo', title: 'A Fazer', color: '#6C63FF', limit: 0 },
@@ -27,6 +27,7 @@ function tarefasToColumns(tarefas) {
     { id: 'done', title: 'Concluído', color: '#43D9AD', limit: 0 }
   ];
   const columns = columnDefs.map(col => ({ ...col, cards: [] }));
+
   tarefas.forEach(task => {
     const col = columns.find(c => c.title === task.coluna);
     if (col) {
@@ -46,13 +47,24 @@ function tarefasToColumns(tarefas) {
   return columns;
 }
 
-async function loadInitialData() {
-  // Estado já foi carregado do localStorage na inicialização.
-  // Só renderiza — não sobrescreve dados locais com estado vazio da API.
-  render();
+/* Função principal que carrega os dados da API e inicia o app */
+async function initApp() {
+  try {
+    const tarefas = await window.API.fetchTarefas();
+    state.columns = tarefasToColumns(tarefas);
+    console.log('✅ Dados carregados da API:', tarefas);
+  } catch (err) {
+    console.error('❌ Erro ao carregar tarefas da API:', err);
+    state.columns = tarefasToColumns([]);
+    if (window.showToast) window.showToast('Erro ao conectar ao servidor. Usando dados locais.', 3000);
+  }
+  render(); 
 }
 
-
+/* Executa a inicialização quando a página carregar */
+document.addEventListener('DOMContentLoaded', () => {
+  initApp(); 
+});
 
 /** Controla transições de UI para evitar reflows pesados e gerenciar skeletons */
 let isTransitioning = false;
