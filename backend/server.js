@@ -1,7 +1,10 @@
+// Importa os módulos necessários (mantenha os que você já tem)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
+// --- As importações corretas para o Firebase Admin SDK moderno ---
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -9,63 +12,64 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// Configuração do Firebase Admin
+// --- Inicialização do Firebase ---
 let serviceAccount;
 try {
-  // Prioriza a variável de ambiente no Fly.io
+  // Tenta carregar as credenciais da variável de ambiente (Fly.io)
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
     console.log('✅ Credenciais carregadas da variável de ambiente.');
   } else {
-    // Fallback para desenvolvimento local
+    // Fallback para o arquivo local durante o desenvolvimento
     serviceAccount = require('./serviceAccountKey.json');
     console.log('✅ Credenciais carregadas do arquivo local.');
   }
 } catch (error) {
-  console.error('❌ Erro fatal ao configurar o Firebase:', error);
+  console.error('❌ Erro fatal ao carregar as credenciais:', error);
   process.exit(1);
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+// Inicializa o app do Firebase Admin
+const firebaseApp = initializeApp({
+  credential: cert(serviceAccount)
 });
 
-// 🎯 Força o uso do banco de dados (default)
-const db = admin.firestore('(default)');
-console.log('🔥 Firestore conectado ao banco (default)');
+// Obtém a instância do Firestore para o banco de dados '(default)'
+// Esta é a sintaxe moderna e correta
+const db = getFirestore(firebaseApp, '(default)');
+console.log('🔥 Firebase Admin inicializado e conectado ao banco (default).');
 
-// Rota de teste e listagem de tarefas
+// --- Suas rotas da API (mantenha como estão) ---
 app.get('/tarefas', async (req, res) => {
   try {
-    const colRef = db.collection('tarefas');
-    const snapshot = await colRef.get();
-
-    if (snapshot.empty) {
-      console.log('Nenhuma tarefa encontrada. Retornando array vazio.');
-      return res.status(200).json([]); // Garante resposta 200 com array vazio
-    }
-
-    const tarefas = [];
-    snapshot.forEach(doc => {
-      tarefas.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-
-    res.status(200).json(tarefas);
-  } catch (error) {
-    console.error('Erro ao buscar tarefas:', error);
-    res.status(500).json({ erro: 'Erro interno ao buscar tarefas.', details: error.message });
+    const snapshot = await db.collection('tarefas').get();
+    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(tarefas);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: err.message });
   }
 });
 
-// 🔥 NOVA: Rota de teste simples (apenas para verificar se o servidor está online)
+app.post('/tarefas', async (req, res) => {
+  try {
+    const { titulo, coluna } = req.body;
+    const docRef = await db.collection('tarefas').add({
+      titulo,
+      coluna,
+      createdAt: new Date()
+    });
+    res.status(201).json({ id: docRef.id, titulo, coluna });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// --- Inicia o servidor escutando em todas as interfaces ---
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${port}`);
-  console.log(`🔗 Acesse: http://localhost:${port}/tarefas`);
 });
