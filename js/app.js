@@ -10,8 +10,8 @@
    ESTADO GLOBAL E INICIALIZAÇÃO VIA API
 ════════════════════════════════════════════ */
 let state = {
-  title: 'Meu Quadro',
-  emoji: '🚀',
+  title: 'RH - Marina',
+  emoji: '',
   profile: { name: 'Usuário', color: '#6C63FF', focusTime: 25, breakTime: 5 },
   columns: [],
   archived: [],
@@ -281,7 +281,7 @@ function renderFocusView() {
    BUILD CARD HTML
 ════════════════════════════════════════════ */
 const EMOJI_LIST = [
-  '🚀','💡','🌟','✨','✅','🎉','📝','📌','🗓️','📊','💻','📱','💬','⚠️',
+  '💡','🌟','✨','✅','🎉','📝','📌','🗓️','📊','💻','📱','💬','⚠️',
   '🔄','➕','📚','📁','🔗','🗑️','🌎','☀️','🌈','🔥','💖','🤔','⏳','⏰',
   '📆','📈','📉','🛠️','🔒','🔔','📢','🎁','🎓','💼','🏡','🚗','✈️','⛵',
   '🍕','☕','💪','🧠','👀','🎤','🎧','🎸','🎮','🎥','🎨','🎵','❤️','🧡',
@@ -361,7 +361,7 @@ function buildColumn(col, isDoneColumn, hasPrevCol = false, hasNextCol = false) 
   // Empty state da coluna
   const emptyStateHTML = col.cards.length === 0 ? `
     <div class="column-empty-state">
-      <span class="empty-icon">🚀</span>
+      <span class="empty-icon">📁</span>
       <p>Nenhuma tarefa criada ainda</p>
       <button class="btn-empty-create" data-col="${col.id}">+ Criar primeira tarefa</button>
     </div>` : '';
@@ -762,10 +762,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('boardEmojiText').addEventListener('click', openEmojiModal);
   document.getElementById('closeEmojiModal').addEventListener('click', () => closeModal('emojiModal'));
   document.getElementById('clearEmojiBtn').addEventListener('click', () => {
-    state.emoji = '🚀';
+    state.emoji = '';
     saveState(state);
     render();
-    showToast('Emoji redefinido! 🚀');
+    showToast('Emoji removido!');
     closeModal('emojiModal');
   });
 

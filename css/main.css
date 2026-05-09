@@ -581,3 +581,177 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   box-shadow: 0 0 20px rgba(124, 58, 237, 0.3), var(--shadow-card) !important;
   animation: focusPulse 2s infinite ease-in-out;
 }
+
+/* ========== RESPONSIVIDADE ========== */
+
+/* Tablets e dispositivos médios (até 1024px) */
+@media (max-width: 1024px) {
+  .board {
+    gap: 12px;
+    padding: 12px;
+    overflow-x: auto;
+  }
+  .column {
+    width: 280px;
+    min-width: 280px;
+  }
+  .card-title {
+    font-size: 13px;
+  }
+}
+
+/* Celulares (até 768px) */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+  .header-center {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-left: 0;
+  }
+  .search-wrapper {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .board-container {
+    padding-top: 140px; /* Ajuste conforme o header */
+  }
+  .board {
+    gap: 12px;
+    padding: 8px;
+  }
+  .column {
+    width: 260px;
+    min-width: 260px;
+  }
+  .card-actions {
+    opacity: 1; /* sempre visível no celular */
+  }
+  .modal {
+    width: 95%;
+    max-width: 95%;
+    margin: 16px;
+    padding: 16px;
+  }
+  .priority-picker {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .priority-btn {
+    width: 100%;
+  }
+}
+
+/* Celulares pequenos (até 480px) */
+@media (max-width: 480px) {
+  .column {
+    width: 240px;
+    min-width: 240px;
+  }
+  .card-title {
+    font-size: 12px;
+  }
+  .card-desc {
+    font-size: 11px;
+    -webkit-line-clamp: 2;
+  }
+  .board-title {
+    font-size: 14px;
+    max-width: 150px;
+  }
+  .btn-icon span {
+    display: none; /* esconde texto do botão, mostra só ícone */
+  }
+  .btn-icon {
+    padding: 6px 8px;
+  }
+}
+
+/* ========== FUNDO CINZA + ANIMAÇÕES NAS COLUNAS ========== */
+
+/* Fundo principal degradê cinza */
+body {
+  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+  min-height: 100vh;
+}
+
+/* Colunas: efeito vidro escuro + animação de entrada */
+.column {
+  background: rgba(30, 30, 35, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.2s;
+  animation: slideUpColumn 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) both;
+}
+
+@keyframes slideUpColumn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Efeito hover nas colunas */
+.column:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Cabeçalho da coluna mais elegante */
+.column-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px 20px 0 0;
+}
+
+/* Cards internos mantêm aparência original, mas com leve animação de entrada */
+.card {
+  animation: fadeInCard 0.25s ease-out both;
+}
+
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botão "Adicionar tarefa" com transição */
+.add-card-btn {
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.add-card-btn:active {
+  transform: scale(0.97);
+}
+
+/* Scrollbar personalizada para combinar com tema escuro */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #2a2a2a;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

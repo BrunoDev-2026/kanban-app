@@ -23,8 +23,8 @@ let saveTimeout = null;
  */
 function buildDefaultState() {
   return {
-    title: 'Meu Quadro',
-    emoji: '🚀',
+    title: 'RH - Marina',
+    emoji: '',
     profile: {
       name: 'Usuário',
       color: '#6C63FF',
