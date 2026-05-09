@@ -858,6 +858,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const focBtn = e.target.closest('.card-btn.focus');
     if (focBtn) { togglePomodoro(focBtn.dataset.card); return; }
 
+    // ── Editar tarefa ──
+    const editBtn = e.target.closest('.card-btn.edit');
+    if (editBtn) {
+      const cardId = editBtn.dataset.card;
+      const col = state.columns.find(c => c.cards.some(k => k.id === cardId));
+      if (col) openCardModal(col.id, cardId, state);
+      return;
+    }
+
     // ── Excluir tarefa individual ──
     const delBtn = e.target.closest('.card-btn.delete');
     if (delBtn) {
@@ -866,14 +875,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const col    = state.columns.find(c => c.cards.some(k => k.id === cardId));
       const card   = col?.cards.find(k => k.id === cardId);
       if (!col || !card) return;
-      openConfirm(`Excluir a tarefa "${card.title}" permanentemente?`, () => {
+      openConfirm(`Excluir a tarefa "${card.title}" permanentemente?`, async () => {
         cardEl.classList.add('card-exit');
-        
-        setTimeout(() => {
+        setTimeout(async () => {
           col.cards = col.cards.filter(k => k.id !== cardId);
           if (activeFocusCardId === cardId) stopPomodoro();
           saveState(state);
           render();
+          // Sincroniza exclusão com a API
+          try {
+            await window.API.deleteTarefa(cardId);
+          } catch(err) {
+            console.warn('⚠️ Erro ao excluir na API:', err);
+          }
           showToast('🗑️ Tarefa excluída.');
         }, 280);
       });
