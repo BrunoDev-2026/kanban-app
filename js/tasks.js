@@ -64,9 +64,18 @@ async function saveCard(state, renderFn) {
   try {
     if (editingCardId) {
       // Atualizar tarefa existente (PUT)
-      await window.API.updateTarefa(editingCardId, title, col.title);
+      await window.API.updateTarefa(editingCardId, {
+        titulo: title,
+        coluna: col.title,
+        desc,
+        date,
+        tags,
+        priority: selectedPriority,
+        checklist: tempChecklist
+      });
       // Atualiza estado local
       const card = col.cards.find(k => k.id === editingCardId);
+
       if (card) {
         card.title = title;
         card.desc = desc;
@@ -78,19 +87,29 @@ async function saveCard(state, renderFn) {
       showToast('✅ Tarefa atualizada!');
     } else {
       // Criar nova tarefa (POST)
-      const nova = await window.API.createTarefa(title, col.title);
-      col.cards.push({
-        id: nova.id,
-        title,
+      const nova = await window.API.createTarefa({
+        titulo: title,
+        coluna: col.title,
         desc,
         date,
         tags,
         priority: selectedPriority,
-        checklist: tempChecklist,
+        checklist: tempChecklist
+      });
+
+      col.cards.push({
+        id: nova.id,
+        title,
+        desc: nova.desc || desc,
+        date: nova.date || date,
+        tags: Array.isArray(nova.tags) ? nova.tags : tags,
+        priority: nova.priority || selectedPriority,
+        checklist: Array.isArray(nova.checklist) ? nova.checklist : tempChecklist,
         totalFocusTime: 0,
-        createdAt: new Date().toISOString()
+        createdAt: nova.createdAt || new Date().toISOString()
       });
       showToast('🎉 Tarefa criada!');
+
     }
     renderFn();
     closeModal('cardModal');

@@ -69,13 +69,38 @@ app.get('/tarefas', async (req, res) => {
 
 app.post('/tarefas', async (req, res) => {
   try {
-    const { titulo, coluna } = req.body;
+    const {
+      titulo,
+      coluna,
+      desc,
+      date,
+      tags,
+      priority,
+      checklist
+    } = req.body;
+
     const docRef = await db.collection('tarefas').add({
       titulo,
       coluna,
+      desc: desc || '',
+      date: date || '',
+      tags: Array.isArray(tags) ? tags : [],
+      priority: priority || 'low',
+      checklist: Array.isArray(checklist) ? checklist : [],
       createdAt: new Date()
     });
-    res.status(201).json({ id: docRef.id, titulo, coluna });
+
+    res.status(201).json({
+      id: docRef.id,
+      titulo,
+      coluna,
+      desc: desc || '',
+      date: date || '',
+      tags: Array.isArray(tags) ? tags : [],
+      priority: priority || 'low',
+      checklist: Array.isArray(checklist) ? checklist : [],
+      createdAt: new Date().toISOString()
+    });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
@@ -89,7 +114,15 @@ app.get('/health', (req, res) => {
 app.put('/tarefas/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, coluna } = req.body;
+    const {
+      titulo,
+      coluna,
+      desc,
+      date,
+      tags,
+      priority,
+      checklist
+    } = req.body;
 
     const tarefaRef = db.collection('tarefas').doc(id);
     const doc = await tarefaRef.get();
@@ -98,8 +131,26 @@ app.put('/tarefas/:id', async (req, res) => {
       return res.status(404).json({ erro: 'Tarefa não encontrada' });
     }
 
-    await tarefaRef.update({ titulo, coluna });
-    res.json({ id, titulo, coluna });
+    await tarefaRef.update({
+      titulo,
+      coluna,
+      desc: desc || '',
+      date: date || '',
+      tags: Array.isArray(tags) ? tags : [],
+      priority: priority || 'low',
+      checklist: Array.isArray(checklist) ? checklist : []
+    });
+
+    res.json({
+      id,
+      titulo,
+      coluna,
+      desc: desc || '',
+      date: date || '',
+      tags: Array.isArray(tags) ? tags : [],
+      priority: priority || 'low',
+      checklist: Array.isArray(checklist) ? checklist : []
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: err.message });

@@ -164,7 +164,15 @@ function onDrop(e, state, renderFn) {
       const movedCard = tgtCol.cards[insertIdx] || card; // fallback
       const backendId = movedCard?.backendId || movedCard?.id || card?.backendId || card?.id;
       if (window.API?.updateTarefa && backendId) {
-        await window.API.updateTarefa(backendId, movedCard.title, tgtCol.title);
+        await window.API.updateTarefa(backendId, {
+          titulo: movedCard.title,
+          coluna: tgtCol.title,
+          desc: movedCard.desc || '',
+          date: movedCard.date || '',
+          tags: Array.isArray(movedCard.tags) ? movedCard.tags : [],
+          priority: movedCard.priority || 'low',
+          checklist: Array.isArray(movedCard.checklist) ? movedCard.checklist : []
+        });
       }
     } catch (e) {
       console.error(e);

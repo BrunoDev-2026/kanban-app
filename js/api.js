@@ -42,25 +42,30 @@
     return request('/tarefas');
   }
 
-  async function createTarefa(titulo, coluna) {
+  async function createTarefa(payload) {
     return request('/tarefas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo, coluna })
+      body: JSON.stringify(payload)
     });
   }
 
-  async function updateTarefa(id, titulo, coluna) {
+
+  async function updateTarefa(id, payload) {
     return request(`/tarefas/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo, coluna })
+      body: JSON.stringify(payload)
     });
   }
+
+
+
 
   async function deleteTarefa(id) {
     return request(`/tarefas/${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
+
 
   // Exposição global
   window.API = {

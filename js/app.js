@@ -34,11 +34,12 @@ function tarefasToColumns(tarefas) {
       col.cards.push({
         id: task.id,
         title: task.titulo,
-        desc: '',
-        priority: 'low',
-        date: '',
-        tags: [],
-        checklist: [],
+        desc: task.desc || '',
+        priority: task.priority || 'low',
+        date: task.date || '',
+        tags: Array.isArray(task.tags) ? task.tags : [],
+        checklist: Array.isArray(task.checklist) ? task.checklist : [],
+
         totalFocusTime: 0,
         createdAt: task.createdAt || new Date().toISOString()
       });
