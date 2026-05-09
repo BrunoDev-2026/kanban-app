@@ -514,8 +514,8 @@ function render() {
   // Header
   const emojiText    = document.getElementById('boardEmojiText');
   const titleDisplay = document.getElementById('boardTitleDisplay');
-  if (emojiText)    emojiText.textContent    = state.emoji || '🚀';
-  if (titleDisplay) titleDisplay.textContent = state.title || 'Meu Quadro';
+  if (emojiText)    emojiText.textContent    = state.emoji;
+  if (titleDisplay) titleDisplay.textContent = state.title;
 
   // Avatar
   updateAvatarDisplay(state.profile);
@@ -919,6 +919,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function initApp() {
     try {
       const tarefas = await window.API.fetchTarefas();
+      
+      // Tenta carregar metadados locais (Título/Emoji) para não perder personalização
+      const local = typeof loadState === 'function' ? loadState() : null;
+      if (local) {
+        state.title = local.title || state.title;
+        state.emoji = local.emoji !== undefined ? local.emoji : state.emoji;
+        state.profile = local.profile || state.profile;
+      }
+
       state.columns = tarefasToColumns(tarefas);
       render();
     } catch (err) {

@@ -1,5 +1,6 @@
 // Importa os módulos necessários (mantenha os que você já tem)
 require('dotenv').config();
+const compression = require('compression');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -8,6 +9,7 @@ const admin = require('firebase-admin');
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(compression()); // Ativa Gzip para todas as respostas
 app.use(cors({
   origin: '*', // Permite qualquer origem (frontend local, Fly.io, etc.)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -17,7 +19,18 @@ app.use(express.json());
 
 // --- Servir arquivos estáticos do frontend ---
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '..'), {
+  maxAge: '1d', // Cache de 1 dia para arquivos estáticos
+  setHeaders: (res, filePath) => {
+    // Para arquivos HTML, forçamos o navegador a sempre verificar se há nova versão
+    if (path.extname(filePath) === '.html') {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    } else {
+      // Garante que o cabeçalho de cache público seja respeitado para outros ativos
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
 
 // Carrega as credenciais: primeiro da variável de ambiente (Fly.io), depois do arquivo local (desenvolvimento)
 let serviceAccount;
@@ -54,6 +67,7 @@ app.get('/', (req, res) => {
 
 app.get('/tarefas', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-store'); // Não cachear rotas de API
     const snapshot = await db.collection('tarefas').get();
     const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(tarefas);
