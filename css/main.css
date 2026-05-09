@@ -655,10 +655,17 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   .card-title {
     font-size: 12px;
   }
-  .card-desc {
-    font-size: 11px;
-    -webkit-line-clamp: 2;
-  }
+.card-desc {
+  font-size: 11px;
+
+  /* Compatibilidade */
+  line-clamp: 2;          /* padrão */
+  -webkit-line-clamp: 2;  /* Chrome, Edge, Safari */
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
   .board-title {
     font-size: 14px;
     max-width: 150px;
@@ -669,6 +676,66 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   .btn-icon {
     padding: 6px 8px;
   }
+}
+
+/* ========== RESPONSIVO + ANIMAÇÕES ========== */
+
+/* Mobile first - base para celular */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px;
+  }
+  .board-container {
+    padding-top: 140px;
+  }
+  .board {
+    gap: 12px;
+    overflow-x: auto;
+  }
+  .column {
+    width: 260px;
+    min-width: 260px;
+  }
+  .card-actions {
+    opacity: 1; /* sempre visível no toque */
+  }
+  .modal {
+    width: 95%;
+    margin: 16px;
+    padding: 16px;
+  }
+}
+
+/* Desktop (acima de 768px) */
+@media (min-width: 769px) {
+  .board {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .column {
+    width: 300px;
+  }
+}
+
+/* Animações nas colunas (já existentes, mantidas) */
+.column {
+  transition: transform 0.25s ease, box-shadow 0.3s;
+  animation: slideUpColumn 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) both;
+}
+@keyframes slideUpColumn {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.column:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -10px rgba(0,0,0,0.4);
+}
+/* Fundo principal degradê cinza */
+body {
+  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
 }
 
 /* ========== FUNDO CINZA + ANIMAÇÕES NAS COLUNAS ========== */
