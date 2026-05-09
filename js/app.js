@@ -928,8 +928,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // (initApp já carrega as tarefas da API)
-  // await loadInitialData();
   await initApp();
 
 
