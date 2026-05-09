@@ -19,6 +19,7 @@ let state = {
 };
 
 function tarefasToColumns(tarefas) {
+
   const columnDefs = [
     { id: 'todo',     title: 'A Fazer',      color: '#6C63FF', limit: 0 },
     { id: 'progress', title: 'Em Progresso', color: '#FFB347', limit: 0 },
@@ -927,7 +928,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // (initApp já carrega as tarefas da API)
+  // await loadInitialData();
   await initApp();
+
 
   startDashboardAutoRefresh(() => {
     if (showDashboard) renderDashboard(state, document.getElementById('dashboardSection'));
