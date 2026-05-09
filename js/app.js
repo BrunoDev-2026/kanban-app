@@ -18,31 +18,18 @@ let state = {
   history: {}
 };
 
-/* Converte a lista de tarefas da API para o formato de colunas usado pelo app */
 function tarefasToColumns(tarefas) {
   const columnDefs = [
-    { id: 'todo', title: 'A Fazer', color: '#6C63FF', limit: 0 },
+    { id: 'todo',     title: 'A Fazer',      color: '#6C63FF', limit: 0 },
     { id: 'progress', title: 'Em Progresso', color: '#FFB347', limit: 0 },
-    { id: 'review', title: 'Revisão', color: '#4FC3F7', limit: 0 },
-    { id: 'done', title: 'Concluído', color: '#43D9AD', limit: 0 }
+    { id: 'review',   title: 'Revisão',      color: '#4FC3F7', limit: 0 },
+    { id: 'done',     title: 'Concluído',    color: '#43D9AD', limit: 0 }
   ];
   const columns = columnDefs.map(col => ({ ...col, cards: [] }));
-
-  tarefas.forEach(task => {
-    const col = columns.find(c => c.title === task.coluna);
+  tarefas.forEach(t => {
+    const col = columns.find(c => c.title === t.coluna);
     if (col) {
-      col.cards.push({
-        id: task.id,
-        title: task.titulo,
-        desc: task.desc || '',
-        priority: task.priority || 'low',
-        date: task.date || '',
-        tags: Array.isArray(task.tags) ? task.tags : [],
-        checklist: Array.isArray(task.checklist) ? task.checklist : [],
-
-        totalFocusTime: 0,
-        createdAt: task.createdAt || new Date().toISOString()
-      });
+      col.cards.push({ id: t.id, title: t.titulo, desc: t.desc || '', priority: t.priority || 'low', date: t.date || '', tags: t.tags || [], checklist: t.checklist || [] });
     }
   });
   return columns;
@@ -928,8 +915,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  await loadInitialData();
-  render(); // ← Render principal após dados carregados
+  async function initApp() {
+    try {
+      const tarefas = await window.API.fetchTarefas();
+      state.columns = tarefasToColumns(tarefas);
+      render();
+    } catch (err) {
+      console.error('Erro ao carregar tarefas:', err);
+      state.columns = tarefasToColumns([]);
+      render();
+    }
+  }
+
+  await initApp();
 
   startDashboardAutoRefresh(() => {
     if (showDashboard) renderDashboard(state, document.getElementById('dashboardSection'));
