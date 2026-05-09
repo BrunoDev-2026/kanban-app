@@ -49,23 +49,29 @@ function tarefasToColumns(tarefas) {
 }
 
 /* Função principal que carrega os dados da API e inicia o app */
-async function initApp() {
+async function loadInitialData() {
   try {
     const tarefas = await window.API.fetchTarefas();
+    // Preserva metadados locais (título, emoji, perfil, archived) e substitui só as colunas
+    const localMeta = loadState(); // lê do localStorage para preservar título/emoji/perfil
+    state.title   = localMeta.title   || state.title;
+    state.emoji   = localMeta.emoji   || state.emoji;
+    state.profile = localMeta.profile || state.profile;
+    state.archived = localMeta.archived || [];
     state.columns = tarefasToColumns(tarefas);
     console.log('✅ Dados carregados da API:', tarefas);
   } catch (err) {
     console.error('❌ Erro ao carregar tarefas da API:', err);
-    state.columns = tarefasToColumns([]);
-    if (window.showToast) window.showToast('Erro ao conectar ao servidor. Usando dados locais.', 3000);
+    // Fallback: usa dados do localStorage se a API falhar
+    const local = loadState();
+    state.title    = local.title;
+    state.emoji    = local.emoji;
+    state.profile  = local.profile;
+    state.archived = local.archived;
+    state.columns  = local.columns.length > 0 ? local.columns : tarefasToColumns([]);
+    if (window.showToast) window.showToast('⚠️ Sem conexão com servidor. Usando dados locais.', 4000);
   }
-  render(); 
 }
-
-/* Executa a inicialização quando a página carregar */
-document.addEventListener('DOMContentLoaded', () => {
-  initApp(); 
-});
 
 /** Controla transições de UI para evitar reflows pesados e gerenciar skeletons */
 let isTransitioning = false;
@@ -724,8 +730,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── Tema ──
   const savedTheme = loadTheme();
   applyTheme(savedTheme);
-
-  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeToggleBtn  = document.getElementById('themeToggleBtn');
   const themeToggleIcon = document.getElementById('themeToggleIcon');
 
   if (themeToggleBtn && themeToggleIcon) {
@@ -924,6 +929,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   await loadInitialData();
+  render(); // ← Render principal após dados carregados
 
   startDashboardAutoRefresh(() => {
     if (showDashboard) renderDashboard(state, document.getElementById('dashboardSection'));
