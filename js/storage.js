@@ -23,90 +23,20 @@ let saveTimeout = null;
  */
 function buildDefaultState() {
   return {
-    title: 'RH - Marina',
-    emoji: '',
+    title: 'Meu Quadro',
+    emoji: '🚀',
     profile: {
       name: 'Usuário',
       color: '#6C63FF',
-      focusTime: 25
+      focusTime: 25,
+      breakTime: 5
     },
     lastView: 'board',
     columns: [
-      {
-        id: uid(),
-        title: 'A Fazer',
-        color: '#6C63FF',
-        limit: 0,
-        cards: [
-          {
-            id: uid(),
-            title: 'Criar wireframe do projeto',
-            desc: 'Esboçar as telas principais antes de começar o código.',
-            priority: 'high',
-            date: '',
-            tags: ['Design', 'UI'],
-            checklist: [],
-            totalFocusTime: 0,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: uid(),
-            title: 'Configurar repositório Git',
-            desc: '',
-            priority: 'medium',
-            date: '',
-            tags: ['DevOps'],
-            checklist: [],
-            totalFocusTime: 0,
-            createdAt: new Date().toISOString()
-          }
-        ]
-      },
-      {
-        id: uid(),
-        title: 'Em Progresso',
-        color: '#FFB347',
-        limit: 3,
-        cards: [
-          {
-            id: uid(),
-            title: 'Desenvolver página inicial',
-            desc: 'Componente Hero + Navbar responsivo.',
-            priority: 'high',
-            date: '',
-            tags: ['Frontend'],
-            checklist: [],
-            totalFocusTime: 0,
-            createdAt: new Date().toISOString()
-          }
-        ]
-      },
-      {
-        id: uid(),
-        title: 'Revisão',
-        color: '#4FC3F7',
-        limit: 0,
-        cards: []
-      },
-      {
-        id: uid(),
-        title: 'Concluído',
-        color: '#43D9AD',
-        limit: 0,
-        cards: [
-          {
-            id: uid(),
-            title: 'Definir tecnologias do projeto',
-            desc: 'HTML, CSS, JS vanilla — simples e eficaz.',
-            priority: 'low',
-            date: '',
-            tags: [],
-            checklist: [],
-            totalFocusTime: 0,
-            createdAt: new Date().toISOString()
-          }
-        ]
-      }
+      { id: uid(), title: 'A Fazer',      color: '#6C63FF', limit: 0, cards: [] },
+      { id: uid(), title: 'Em Progresso', color: '#FFB347', limit: 0, cards: [] },
+      { id: uid(), title: 'Revisão',      color: '#4FC3F7', limit: 0, cards: [] },
+      { id: uid(), title: 'Concluído',    color: '#43D9AD', limit: 0, cards: [] }
     ],
     archived: [],
     history: {}

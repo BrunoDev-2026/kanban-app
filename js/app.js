@@ -64,29 +64,36 @@ function tarefasToColumns(tarefas, existingColumns = []) {
 ════════════════════════════════════════════ */
 async function loadInitialData() {
   const local = loadState();
-  // Sempre aplica metadados locais primeiro
+  // Aplica metadados locais primeiro
   if (local) {
-    state.title    = local.title    || state.title;
-    state.emoji    = local.emoji    !== undefined ? local.emoji : state.emoji;
+    state.title    = local.title    || 'Meu Quadro';
+    state.emoji    = local.emoji    !== undefined ? local.emoji : '🚀';
     state.profile  = local.profile  || state.profile;
     state.archived = local.archived || [];
     state.history  = local.history  || {};
     state.lastView = local.lastView || 'board';
     showDashboard  = state.lastView === 'dashboard';
   }
+
   try {
     const tarefas = await window.API.fetchTarefas();
-    // Distribui tarefas nas colunas existentes localmente (preserva IDs)
-    state.columns = tarefasToColumns(tarefas, local?.columns || []);
-    saveState(state);
-    console.log('✅ API:', tarefas.length, 'tarefas');
+
+    // Usa as colunas já salvas localmente (preserva IDs e estrutura)
+    // Se não existir, cria as colunas padrão
+    const existingCols = (local?.columns?.length) ? local.columns : null;
+    state.columns = tarefasToColumns(tarefas, existingCols);
+
+    // Persiste estado completo no localStorage
+    saveState(state, false);
+    console.log('✅ API carregada:', tarefas.length, 'tarefas');
   } catch (err) {
     console.warn('📶 Offline — usando localStorage:', err.message);
+    // Usa colunas do localStorage sem sobrescrever com dados da API
     if (local?.columns?.length) {
       state.columns = local.columns;
     } else {
-      state.columns = tarefasToColumns([], []);
-      saveState(state);
+      state.columns = tarefasToColumns([], null);
+      saveState(state, false);
     }
     if (window.showToast) showToast('📴 Modo offline. Dados locais.', 4000);
   }
@@ -573,25 +580,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mover próxima coluna
     const nextBtn = e.target.closest('.card-btn.next-col');
     if (nextBtn) {
-      const cardId = nextBtn.dataset.card;
-      const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
+      const cardId      = nextBtn.dataset.card;
+      const ci          = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci >= 0 && ci < state.columns.length - 1) {
-        const destColTitle = state.columns[ci + 1].title; // captura ANTES do splice
-        const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [card] = state.columns[ci].cards.splice(ki, 1);
-        state.columns[ci + 1].cards.push(card);
+        const destCol     = state.columns[ci + 1];
+        const destColTitle = destCol.title;
+        const ki          = state.columns[ci].cards.findIndex(k => k.id === cardId);
+        const [card]      = state.columns[ci].cards.splice(ki, 1);
+        destCol.cards.push(card);
         saveState(state);
         render();
-        showToast('➡️ Avançou!');
-        playTick(400, 0.2, 0.05, true);
+        showToast('⏳ Movendo tarefa...');
         try {
           await window.API.updateTarefa(cardId, {
             titulo: card.title, coluna: destColTitle,
             desc: card.desc || '', date: card.date || '',
-            tags: card.tags || [], priority: card.priority || 'low',
-            checklist: card.checklist || []
+            tags: Array.isArray(card.tags) ? card.tags : [],
+            priority: card.priority || 'low',
+            checklist: Array.isArray(card.checklist) ? card.checklist : []
           });
-        } catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
+          showToast('➡️ Tarefa avançou para ' + destColTitle + '!');
+          playTick(400, 0.2, 0.05, true);
+        } catch(err) {
+          // Reverte a movimentação local se a API falhar
+          destCol.cards.splice(destCol.cards.findIndex(k => k.id === cardId), 1);
+          state.columns[ci].cards.splice(ki, 0, card);
+          saveState(state);
+          render();
+          showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
+          console.error('Erro API mover →:', err);
+        }
       }
       return;
     }
@@ -599,25 +617,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mover coluna anterior
     const prevBtn = e.target.closest('.card-btn.prev-col');
     if (prevBtn) {
-      const cardId = prevBtn.dataset.card;
-      const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
+      const cardId       = prevBtn.dataset.card;
+      const ci           = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci > 0) {
-        const destColTitle = state.columns[ci - 1].title; // captura ANTES do splice
-        const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [card] = state.columns[ci].cards.splice(ki, 1);
-        state.columns[ci - 1].cards.push(card);
+        const destCol      = state.columns[ci - 1];
+        const destColTitle = destCol.title;
+        const ki           = state.columns[ci].cards.findIndex(k => k.id === cardId);
+        const [card]       = state.columns[ci].cards.splice(ki, 1);
+        destCol.cards.push(card);
         saveState(state);
         render();
-        showToast('⬅️ Retornou!');
-        playTick(400, 0.2, 0.05, true);
+        showToast('⏳ Movendo tarefa...');
         try {
           await window.API.updateTarefa(cardId, {
             titulo: card.title, coluna: destColTitle,
             desc: card.desc || '', date: card.date || '',
-            tags: card.tags || [], priority: card.priority || 'low',
-            checklist: card.checklist || []
+            tags: Array.isArray(card.tags) ? card.tags : [],
+            priority: card.priority || 'low',
+            checklist: Array.isArray(card.checklist) ? card.checklist : []
           });
-        } catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
+          showToast('⬅️ Tarefa voltou para ' + destColTitle + '!');
+          playTick(400, 0.2, 0.05, true);
+        } catch(err) {
+          // Reverte a movimentação local se a API falhar
+          destCol.cards.splice(destCol.cards.findIndex(k => k.id === cardId), 1);
+          state.columns[ci].cards.splice(ki, 0, card);
+          saveState(state);
+          render();
+          showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
+          console.error('Erro API mover ←:', err);
+        }
       }
       return;
     }
