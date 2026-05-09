@@ -25,14 +25,14 @@ app.use(express.urlencoded({ extended: true }));
 // --- Servir arquivos estáticos do frontend ---
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
 app.use(express.static(path.join(__dirname, '..'), {
-  maxAge: '1d', // Cache de 1 dia para arquivos estáticos
+  maxAge: 0, // Desativado para garantir que deploys sejam vistos imediatamente
   setHeaders: (res, filePath) => {
     // Para arquivos HTML, forçamos o navegador a sempre verificar se há nova versão
     if (path.extname(filePath) === '.html') {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     } else {
       // Garante que o cabeçalho de cache público seja respeitado para outros ativos
-      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
   }
 }));
@@ -72,6 +72,7 @@ app.get('/', (req, res) => {
 
 app.get('/tarefas', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const snapshot = await db.collection('tarefas').get();
     const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.status(200).json(tarefas);

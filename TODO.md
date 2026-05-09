@@ -1,15 +1,7 @@
-# TODO - Ajuste de persistência de tarefas
+# TODO — Correção DELETE “volta após F5”
 
-- [x] Atualizar backend/server.js para salvar e atualizar todos os campos de tarefa no Firestore (titulo, coluna, desc, date, tags, priority, checklist).
-
-- [x] Garantir que o backend retorne todos os campos ao criar e atualizar.
-
-- [x] Atualizar js/tasks.js para enviar os campos completos no POST/PUT.
-
-- [x] Atualizar js/app.js (tarefasToColumns) para mapear os campos retornados da API para o formato do card.
-
-- [x] Validar se createTarefa/updateTarefa continuam compatíveis com o js/api.js (ajustar se necessário).
-
-
-- [ ] Testar manualmente: criar/editar tarefa e confirmar persistência ao recarregar.
+- [ ] 1) Corrigir `js/sync.js`: ao enfileirar DELETE para um `id`, remover operações pendentes anteriores (PUT/UPDATE) para o mesmo `id`.
+- [ ] 2) Garantir recarga consistente após sync: implementar `window._reloadAfterSync` em `js/app.js` (chama `API.fetchTarefas()` e reconstrói `state.columns`, depois `render()`).
+- [ ] 3) Rechecar `js/app.js`: confirmar que no DELETE confirmado o card não fica em nenhum outro estado/estruturas e que o enqueue está correto.
+- [ ] 4) Teste manual: criar tarefa → excluir → validar que em F5 não retorna (com e sem estar offline durante o fluxo).
 

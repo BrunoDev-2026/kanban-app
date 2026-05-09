@@ -5,6 +5,7 @@
 'use strict';
 
 const OUTBOX_KEY = 'kanflow_outbox';
+const LOG_KEY    = 'kanflow_sync_logs';
 let syncTimer    = null;
 let isSyncing    = false;
 
@@ -17,15 +18,42 @@ function setOutbox(queue) {
   localStorage.setItem(OUTBOX_KEY, JSON.stringify(queue));
 }
 
+/**
+ * Registra logs de sincronização no localStorage para persistência
+ */
+function saveSyncLog(op, status, error = null) {
+  try {
+    const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    const entry = {
+      ts: new Date().toISOString(),
+      method: op.method, id: op.id, status, error: error?.message || error
+    };
+    logs.unshift(entry);
+    // Limpeza automática: mantém apenas os últimos 50 logs para poupar localStorage
+    localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, 50)));
+  } catch (e) {}
+}
+
 function enqueue(op) {
   const queue = getOutbox();
-  // Remove operacao anterior sobre o mesmo ID para evitar duplicatas
-  const filtered = queue.filter(o => !(o.id === op.id && o.method === op.method));
-  // Se ja tem DELETE pendente, ignora UPDATE
+
+  // Remove duplicatas exatas (mesmo id + mesmo method)
+  let filtered = queue.filter(o => o && !(String(o.id) === String(op.id) && o.method === op.method));
+
+  // Se estamos enfileirando DELETE:
+  // - remove qualquer PUT/UPDATE pendente anterior para o mesmo id
+  //   (evita DELETE + PUT recriar a tarefa depois)
+  if (op.method === 'DELETE') {
+    filtered = filtered.filter(o => o && !(String(o.id) === String(op.id) && (o.method === 'PUT' || o.method === 'UPDATE')));
+  }
+
+  // Se estamos enfileirando PUT:
+  // - ignora PUT se já existe um DELETE pendente para o mesmo id
   if (op.method === 'PUT') {
-    const hasDel = filtered.some(o => o.id === op.id && o.method === 'DELETE');
+    const hasDel = filtered.some(o => o && String(o.id) === String(op.id) && o.method === 'DELETE');
     if (hasDel) return;
   }
+
   filtered.push({ ...op, ts: Date.now() });
   setOutbox(filtered);
   scheduleSync();
@@ -52,10 +80,31 @@ async function processOutbox() {
       } else if (op.method === 'DELETE') {
         await window.API.deleteTarefa(op.id);
       }
-      console.log('✅ Sync OK:', op.method, op.id);
+      saveSyncLog(op, 'success');
+      console.log(`✅ Sincronização Realizada: [${op.method}] ID: ${op.id}`);
     } catch (err) {
+      // Se o servidor retornar 404, o item já sumiu do banco. 
+      // Removemos da fila para evitar que ele bloqueie ou reapareça.
+      if (err.message && err.message.includes('404')) {
+        console.warn('🗑️ Item já removido no servidor:', op.id);
+        saveSyncLog(op, 'success', '404 - Limpeza automática');
+        continue; 
+      }
+
+      // Se estivermos online e a API rejeitar a exclusão (Erro 400, 500, etc)
+      // Revertemos a UI Otimista restaurando o card
+      if (window.navigator.onLine && op.method === 'DELETE' && op.cardBackup) {
+        console.error('❌ Erro crítico na API. Revertendo exclusão:', op.id);
+        if (window._revertDelete) {
+          window._revertDelete(op.cardBackup, op.columnIdBackup);
+        }
+        saveSyncLog(op, 'reverted', `Erro API: ${err.message}. Tarefa restaurada.`);
+        continue; // Remove da fila pois foi revertido
+      }
+
       console.warn('⏳ Sync pendente:', op.method, op.id, err.message);
       remaining.push(op);
+      saveSyncLog(op, 'failed', err.message);
     }
   }
 
@@ -77,23 +126,39 @@ async function processOutbox() {
 function updateSyncIndicator(status, count) {
   const el = document.getElementById('syncIndicator');
   if (!el) return;
+
+  el.classList.remove('sync-pending', 'sync-loading', 'sync-done');
+
   if (status === 'syncing') {
-    el.textContent = '⏳ Sincronizando...';
-    el.style.color = 'var(--accent-light)';
+    el.innerHTML = '<span class="spin">⏳</span> Sincronizando...';
+    el.classList.add('sync-loading');
     el.style.display = 'inline-block';
   } else if (status === 'pending') {
-    el.textContent = '\u26A0\uFE0F ' + (count || 0) + ' pendente(s) — aguardando servidor';
-    el.style.color = '#FFB347';
+    el.innerHTML = '⚠️ <strong>' + (count || 0) + '</strong> operação(ões) pendente(s)';
+    el.classList.add('sync-pending');
     el.style.display = 'inline-block';
   } else {
-    el.textContent = '\u2705 Sincronizado';
-    el.style.color = '#43D9AD';
+    el.innerHTML = '✅ Sincronizado';
+    el.classList.add('sync-done');
     el.style.display = 'inline-block';
-    setTimeout(function() { el.style.display = 'none'; }, 3000);
+    setTimeout(function() { if (!isSyncing && getOutbox().length === 0) el.style.display = 'none'; }, 3000);
   }
 }
 
-window.Sync = { enqueue: enqueue, processOutbox: processOutbox, getOutbox: getOutbox };
+window.Sync = { 
+  enqueue: enqueue, 
+  processOutbox: processOutbox, 
+  getOutbox: getOutbox,
+  clearLogs: () => {
+    localStorage.removeItem(LOG_KEY);
+    console.log('🧹 Logs de sincronização limpos.');
+  },
+  showLogs: () => {
+    const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    console.log('%c📋 Histórico de Sincronização:', 'font-weight: bold; font-size: 1.2em; color: #7C3AED;');
+    console.table(logs);
+  }
+};
 
 window.addEventListener('online', function() {
   showToast('\uD83C\uDF10 Conexao restaurada! Sincronizando...');
