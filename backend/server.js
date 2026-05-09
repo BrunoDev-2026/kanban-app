@@ -6,7 +6,7 @@ const path = require('path');
 const admin = require('firebase-admin');
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 
 app.use(cors({
   origin: '*', // Permite qualquer origem (frontend local, Fly.io, etc.)
@@ -19,31 +19,30 @@ app.use(express.json());
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
 app.use(express.static(path.join(__dirname, '..')));
 
-// Carrega credenciais do Firebase: PRIORIDADE para a variável de ambiente (Fly.io)
+// Carrega as credenciais: primeiro da variável de ambiente (Fly.io), depois do arquivo local (desenvolvimento)
 let serviceAccount;
 if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  try {
-    serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    console.log('✅ Credenciais carregadas da variável de ambiente');
-  } catch (err) {
-    console.error('❌ Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
-    process.exit(1);
-  }
+    // Remove BOM (Byte Order Mark) que o PowerShell/Windows pode adicionar
+    const raw = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON.replace(/^\uFEFF/, '').trim();
+    serviceAccount = JSON.parse(raw);
+    console.log('✅ Credenciais carregadas da variável de ambiente.');
 } else {
-  // Fallback para desenvolvimento local (arquivo)
-  try {
-    serviceAccount = require('./serviceAccountKey.json');
-    console.log('✅ Credenciais carregadas do arquivo local');
-  } catch (err) {
-    console.error('❌ Nenhuma credencial encontrada. Defina GOOGLE_APPLICATION_CREDENTIALS_JSON ou coloque serviceAccountKey.json');
-    process.exit(1);
-  }
+    // Fallback para desenvolvimento local com arquivo
+    try {
+        serviceAccount = require('./serviceAccountKey.json');
+        console.log('✅ Credenciais carregadas do arquivo local.');
+    } catch (error) {
+        console.error('❌ Nenhuma credencial encontrada no ambiente e nenhum arquivo local.');
+        process.exit(1);
+    }
 }
 
+// Inicializa o Firebase Admin com as credenciais carregadas
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount)
 });
 const db = admin.firestore();
+console.log('🔥 Firebase Admin inicializado com sucesso.');
 
 // --- Suas rotas da API (mantenha como estão) ---
 app.get('/', (req, res) => {

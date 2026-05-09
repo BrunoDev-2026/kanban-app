@@ -4,7 +4,7 @@
 // Mantém compatibilidade com o index.html carregando scripts sem modules.
 
 (function () {
-  const API_BASE_URL = 'https://kanban-api-node.fly.dev';
+  const API_BASE_URL = 'https://kanban-app-ff84.onrender.com';
 
   function getErrorMessage(err) {
     if (!err) return 'Erro na requisição.';
