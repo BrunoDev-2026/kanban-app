@@ -3,12 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-// --- As importações corretas para o Firebase Admin SDK moderno ---
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const admin = require('firebase-admin');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 app.use(cors({
   origin: '*', // Permite qualquer origem (frontend local, Fly.io, etc.)
@@ -21,34 +19,31 @@ app.use(express.json());
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
 app.use(express.static(path.join(__dirname, '..')));
 
-// --- Inicialização do Firebase ---
+// Carrega credenciais do Firebase: PRIORIDADE para a variável de ambiente (Fly.io)
 let serviceAccount;
-try {
-  // Tenta carregar as credenciais da variável de ambiente (Fly.io)
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  try {
     serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    console.log('✅ Credenciais carregadas da variável de ambiente.');
-  } else if (require('fs').existsSync('./serviceAccountKey.json')) {
-    // Fallback para o arquivo local durante o desenvolvimento
-    serviceAccount = require('./serviceAccountKey.json');
-    console.log('✅ Credenciais carregadas do arquivo local.');
-  } else {
-    throw new Error('Credenciais do Firebase não encontradas (Env ou Arquivo).');
+    console.log('✅ Credenciais carregadas da variável de ambiente');
+  } catch (err) {
+    console.error('❌ Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
+    process.exit(1);
   }
-} catch (error) {
-  console.error('❌ Erro fatal ao carregar as credenciais:', error);
-  process.exit(1);
+} else {
+  // Fallback para desenvolvimento local (arquivo)
+  try {
+    serviceAccount = require('./serviceAccountKey.json');
+    console.log('✅ Credenciais carregadas do arquivo local');
+  } catch (err) {
+    console.error('❌ Nenhuma credencial encontrada. Defina GOOGLE_APPLICATION_CREDENTIALS_JSON ou coloque serviceAccountKey.json');
+    process.exit(1);
+  }
 }
 
-// Inicializa o app do Firebase Admin
-const firebaseApp = initializeApp({
-  credential: cert(serviceAccount)
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
 });
-
-// Obtém a instância do Firestore para o banco de dados '(default)'
-// Esta é a sintaxe moderna e correta
-const db = getFirestore(firebaseApp, '(default)');
-console.log('🔥 Firebase Admin inicializado e conectado ao banco (default).');
+const db = admin.firestore();
 
 // --- Suas rotas da API (mantenha como estão) ---
 app.get('/', (req, res) => {
