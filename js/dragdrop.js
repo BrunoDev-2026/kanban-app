@@ -155,37 +155,22 @@ function onDrop(e, state, renderFn) {
   dragCardId = null;
   dragColId  = null;
 
-  // Persistência com histórico
   saveState(state, true);
-  renderFn(); // Renderiza imediatamente para UX responsiva
-  showToast('⏳ Sincronizando...');
+  renderFn();
 
-  // Sincroniza com a API
-  (async () => {
-    try {
-      if (window.API?.updateTarefa && card.id) {
-        await window.API.updateTarefa(card.id, {
-          titulo:    card.title,
-          coluna:    tgtCol.title,
-          desc:      card.desc      || '',
-          date:      card.date      || '',
-          tags:      Array.isArray(card.tags)      ? card.tags      : [],
-          priority:  card.priority  || 'low',
-          checklist: Array.isArray(card.checklist) ? card.checklist : []
-        });
-        showToast('✅ Tarefa movida para ' + tgtCol.title + '!');
-      }
-    } catch (err) {
-      console.error('Erro ao mover via drag:', err);
-      // Reverte a movimentação se a API falhar
-      const idx2 = tgtCol.cards.findIndex(c => c.id === card.id);
-      if (idx2 !== -1) tgtCol.cards.splice(idx2, 1);
-      srcCol.cards.splice(cardIdx, 0, card);
-      saveState(state, false);
-      renderFn();
-      showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
-    }
-  })();
+  // Enfileira na outbox — sync garantido mesmo com servidor hibernando
+  if (card.id) {
+    window.Sync.enqueue({ method: 'PUT', id: card.id, payload: {
+      titulo:    card.title,
+      coluna:    tgtCol.title,
+      desc:      card.desc      || '',
+      date:      card.date      || '',
+      tags:      Array.isArray(card.tags)      ? card.tags      : [],
+      priority:  card.priority  || 'low',
+      checklist: Array.isArray(card.checklist) ? card.checklist : []
+    }});
+  }
+  showToast('✅ Tarefa movida para ' + tgtCol.title + '!');
 }
 
 /**

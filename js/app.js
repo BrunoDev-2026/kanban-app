@@ -562,29 +562,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const card   = col?.cards.find(k => k.id === cardId);
       if (!col || !card) return;
 
-      openConfirm(`Excluir "${card.title}"?`, async () => {
-        // 1. Remove localmente
+      openConfirm(`Excluir "${card.title}"?`, () => {
         const ki = col.cards.findIndex(k => k.id === cardId);
         col.cards.splice(ki, 1);
         if (activeFocusCardId === cardId) stopPomodoro();
-
-        // 2. Persiste e renderiza imediatamente
         saveState(state, false);
         render();
-        showToast('⏳ Excluindo do servidor...');
-
-        // 3. Sincroniza com API
-        try {
-          await window.API.deleteTarefa(cardId);
-          showToast('🗑️ Tarefa excluída!');
-        } catch(err) {
-          // Reverte se API falhar
-          col.cards.splice(ki, 0, card);
-          saveState(state, false);
-          render();
-          showToast('❌ Erro ao excluir — tente novamente.');
-          console.error('Erro ao excluir na API:', err);
-        }
+        // Enfileira DELETE na outbox — garante sync mesmo se servidor hibernar
+        window.Sync.enqueue({ method: 'DELETE', id: cardId });
+        showToast('🗑️ Tarefa excluída!');
       });
       return;
     }
@@ -592,36 +578,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mover próxima coluna
     const nextBtn = e.target.closest('.card-btn.next-col');
     if (nextBtn) {
-      const cardId      = nextBtn.dataset.card;
-      const ci          = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
+      const cardId = nextBtn.dataset.card;
+      const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci >= 0 && ci < state.columns.length - 1) {
-        const destCol     = state.columns[ci + 1];
-        const destColTitle = destCol.title;
-        const ki          = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [card]      = state.columns[ci].cards.splice(ki, 1);
-        destCol.cards.push(card);
-        saveState(state);
+        const destColTitle = state.columns[ci + 1].title;
+        const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
+        const [card] = state.columns[ci].cards.splice(ki, 1);
+        state.columns[ci + 1].cards.push(card);
+        saveState(state, false);
         render();
-        showToast('⏳ Movendo tarefa...');
-        try {
-          await window.API.updateTarefa(cardId, {
-            titulo: card.title, coluna: destColTitle,
-            desc: card.desc || '', date: card.date || '',
-            tags: Array.isArray(card.tags) ? card.tags : [],
-            priority: card.priority || 'low',
-            checklist: Array.isArray(card.checklist) ? card.checklist : []
-          });
-          showToast('➡️ Tarefa avançou para ' + destColTitle + '!');
-          playTick(400, 0.2, 0.05, true);
-        } catch(err) {
-          // Reverte a movimentação local se a API falhar
-          destCol.cards.splice(destCol.cards.findIndex(k => k.id === cardId), 1);
-          state.columns[ci].cards.splice(ki, 0, card);
-          saveState(state);
-          render();
-          showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
-          console.error('Erro API mover →:', err);
-        }
+        window.Sync.enqueue({ method: 'PUT', id: cardId, payload: {
+          titulo: card.title, coluna: destColTitle,
+          desc: card.desc || '', date: card.date || '',
+          tags: Array.isArray(card.tags) ? card.tags : [],
+          priority: card.priority || 'low',
+          checklist: Array.isArray(card.checklist) ? card.checklist : []
+        }});
+        showToast('➡️ Avançou para ' + destColTitle + '!');
       }
       return;
     }
@@ -629,36 +602,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mover coluna anterior
     const prevBtn = e.target.closest('.card-btn.prev-col');
     if (prevBtn) {
-      const cardId       = prevBtn.dataset.card;
-      const ci           = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
+      const cardId = prevBtn.dataset.card;
+      const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci > 0) {
-        const destCol      = state.columns[ci - 1];
-        const destColTitle = destCol.title;
-        const ki           = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [card]       = state.columns[ci].cards.splice(ki, 1);
-        destCol.cards.push(card);
-        saveState(state);
+        const destColTitle = state.columns[ci - 1].title;
+        const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
+        const [card] = state.columns[ci].cards.splice(ki, 1);
+        state.columns[ci - 1].cards.push(card);
+        saveState(state, false);
         render();
-        showToast('⏳ Movendo tarefa...');
-        try {
-          await window.API.updateTarefa(cardId, {
-            titulo: card.title, coluna: destColTitle,
-            desc: card.desc || '', date: card.date || '',
-            tags: Array.isArray(card.tags) ? card.tags : [],
-            priority: card.priority || 'low',
-            checklist: Array.isArray(card.checklist) ? card.checklist : []
-          });
-          showToast('⬅️ Tarefa voltou para ' + destColTitle + '!');
-          playTick(400, 0.2, 0.05, true);
-        } catch(err) {
-          // Reverte a movimentação local se a API falhar
-          destCol.cards.splice(destCol.cards.findIndex(k => k.id === cardId), 1);
-          state.columns[ci].cards.splice(ki, 0, card);
-          saveState(state);
-          render();
-          showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
-          console.error('Erro API mover ←:', err);
-        }
+        window.Sync.enqueue({ method: 'PUT', id: cardId, payload: {
+          titulo: card.title, coluna: destColTitle,
+          desc: card.desc || '', date: card.date || '',
+          tags: Array.isArray(card.tags) ? card.tags : [],
+          priority: card.priority || 'low',
+          checklist: Array.isArray(card.checklist) ? card.checklist : []
+        }});
+        showToast('⬅️ Voltou para ' + destColTitle + '!');
       }
       return;
     }
