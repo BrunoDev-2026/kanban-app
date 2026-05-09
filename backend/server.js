@@ -1,21 +1,26 @@
-// Importa os módulos necessários (mantenha os que você já tem)
 require('dotenv').config();
-const compression = require('compression');
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const admin = require('firebase-admin');
+const cors    = require('cors');
+const path    = require('path');
+const admin   = require('firebase-admin');
 
-const app = express();
+const app  = express();
 const port = process.env.PORT || 3000;
 
-app.use(compression()); // Ativa Gzip para todas as respostas
 app.use(cors({
-  origin: '*', // Permite qualquer origem (frontend local, Fly.io, etc.)
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+
+// UTF-8 explícito em todas as respostas JSON
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // --- Servir arquivos estáticos do frontend ---
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
@@ -67,10 +72,9 @@ app.get('/', (req, res) => {
 
 app.get('/tarefas', async (req, res) => {
   try {
-    res.setHeader('Cache-Control', 'no-store'); // Não cachear rotas de API
     const snapshot = await db.collection('tarefas').get();
     const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json(tarefas);
+    res.status(200).json(tarefas);
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: err.message });
