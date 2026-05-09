@@ -157,29 +157,33 @@ function onDrop(e, state, renderFn) {
 
   // Persistência com histórico
   saveState(state, true);
+  renderFn(); // Renderiza imediatamente para UX responsiva
+  showToast('⏳ Sincronizando...');
 
   // Sincroniza com a API
   (async () => {
     try {
-      const movedCard = tgtCol.cards[insertIdx] || card; // fallback
-      const backendId = movedCard?.backendId || movedCard?.id || card?.backendId || card?.id;
-      if (window.API?.updateTarefa && backendId) {
-        await window.API.updateTarefa(backendId, {
-          titulo: movedCard.title,
-          coluna: tgtCol.title,
-          desc: movedCard.desc || '',
-          date: movedCard.date || '',
-          tags: Array.isArray(movedCard.tags) ? movedCard.tags : [],
-          priority: movedCard.priority || 'low',
-          checklist: Array.isArray(movedCard.checklist) ? movedCard.checklist : []
+      if (window.API?.updateTarefa && card.id) {
+        await window.API.updateTarefa(card.id, {
+          titulo:    card.title,
+          coluna:    tgtCol.title,
+          desc:      card.desc      || '',
+          date:      card.date      || '',
+          tags:      Array.isArray(card.tags)      ? card.tags      : [],
+          priority:  card.priority  || 'low',
+          checklist: Array.isArray(card.checklist) ? card.checklist : []
         });
+        showToast('✅ Tarefa movida para ' + tgtCol.title + '!');
       }
-    } catch (e) {
-      console.error(e);
-      showToast('⚠️ Erro ao mover tarefa (API).');
-    } finally {
+    } catch (err) {
+      console.error('Erro ao mover via drag:', err);
+      // Reverte a movimentação se a API falhar
+      const idx2 = tgtCol.cards.findIndex(c => c.id === card.id);
+      if (idx2 !== -1) tgtCol.cards.splice(idx2, 1);
+      srcCol.cards.splice(cardIdx, 0, card);
+      saveState(state, false);
       renderFn();
-      showToast('✨ Tarefa movida!');
+      showToast('❌ Erro ao mover — servidor indisponível. Tente novamente.');
     }
   })();
 }
