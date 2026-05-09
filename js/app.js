@@ -554,25 +554,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Excluir — chama API E atualiza local
+    // ── Excluir tarefa ──
     const delBtn = e.target.closest('.card-btn.delete');
     if (delBtn) {
       const cardId = delBtn.dataset.card;
-      const cardEl = delBtn.closest('.card');
       const col    = state.columns.find(c => c.cards.some(k => k.id === cardId));
       const card   = col?.cards.find(k => k.id === cardId);
       if (!col || !card) return;
+
       openConfirm(`Excluir "${card.title}"?`, async () => {
-        cardEl.classList.add('card-exit');
-        setTimeout(async () => {
-          col.cards = col.cards.filter(k => k.id !== cardId);
-          if (activeFocusCardId === cardId) stopPomodoro();
-          saveState(state);
+        // 1. Remove localmente
+        const ki = col.cards.findIndex(k => k.id === cardId);
+        col.cards.splice(ki, 1);
+        if (activeFocusCardId === cardId) stopPomodoro();
+
+        // 2. Persiste e renderiza imediatamente
+        saveState(state, false);
+        render();
+        showToast('⏳ Excluindo do servidor...');
+
+        // 3. Sincroniza com API
+        try {
+          await window.API.deleteTarefa(cardId);
+          showToast('🗑️ Tarefa excluída!');
+        } catch(err) {
+          // Reverte se API falhar
+          col.cards.splice(ki, 0, card);
+          saveState(state, false);
           render();
-          try { await window.API.deleteTarefa(cardId); }
-          catch(err) { console.warn('⚠️ Erro ao excluir na API:', err); }
-          showToast('🗑️ Tarefa excluída.');
-        }, 280);
+          showToast('❌ Erro ao excluir — tente novamente.');
+          console.error('Erro ao excluir na API:', err);
+        }
       });
       return;
     }
