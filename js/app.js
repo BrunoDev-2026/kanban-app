@@ -576,12 +576,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cardId = nextBtn.dataset.card;
       const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci >= 0 && ci < state.columns.length - 1) {
+        const destColTitle = state.columns[ci + 1].title; // captura ANTES do splice
         const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [c] = state.columns[ci].cards.splice(ki, 1);
-        state.columns[ci+1].cards.push(c);
-        saveState(state); render(); showToast('➡️ Avançou!'); playTick(400,0.2,0.05,true);
-        try { await window.API.updateTarefa(cardId, { titulo:c.title, coluna:state.columns[ci+1].title, desc:c.desc||'', date:c.date||'', tags:c.tags||[], priority:c.priority||'low', checklist:c.checklist||[] }); }
-        catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
+        const [card] = state.columns[ci].cards.splice(ki, 1);
+        state.columns[ci + 1].cards.push(card);
+        saveState(state);
+        render();
+        showToast('➡️ Avançou!');
+        playTick(400, 0.2, 0.05, true);
+        try {
+          await window.API.updateTarefa(cardId, {
+            titulo: card.title, coluna: destColTitle,
+            desc: card.desc || '', date: card.date || '',
+            tags: card.tags || [], priority: card.priority || 'low',
+            checklist: card.checklist || []
+          });
+        } catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
       }
       return;
     }
@@ -592,12 +602,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cardId = prevBtn.dataset.card;
       const ci = state.columns.findIndex(c => c.cards.some(k => k.id === cardId));
       if (ci > 0) {
+        const destColTitle = state.columns[ci - 1].title; // captura ANTES do splice
         const ki = state.columns[ci].cards.findIndex(k => k.id === cardId);
-        const [c] = state.columns[ci].cards.splice(ki, 1);
-        state.columns[ci-1].cards.push(c);
-        saveState(state); render(); showToast('⬅️ Retornou!'); playTick(400,0.2,0.05,true);
-        try { await window.API.updateTarefa(cardId, { titulo:c.title, coluna:state.columns[ci-1].title, desc:c.desc||'', date:c.date||'', tags:c.tags||[], priority:c.priority||'low', checklist:c.checklist||[] }); }
-        catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
+        const [card] = state.columns[ci].cards.splice(ki, 1);
+        state.columns[ci - 1].cards.push(card);
+        saveState(state);
+        render();
+        showToast('⬅️ Retornou!');
+        playTick(400, 0.2, 0.05, true);
+        try {
+          await window.API.updateTarefa(cardId, {
+            titulo: card.title, coluna: destColTitle,
+            desc: card.desc || '', date: card.date || '',
+            tags: card.tags || [], priority: card.priority || 'low',
+            checklist: card.checklist || []
+          });
+        } catch(err) { console.warn('⚠️ Erro ao mover na API:', err); }
       }
       return;
     }

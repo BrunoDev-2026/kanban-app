@@ -1,10 +1,6 @@
 # <p align="center">MB FlowBoard 🚀</p>
 
 <p align="center">
-  <img src="assets/images/banner.png" alt="MB FlowBoard Banner" width="100%">
-</p>
-
-<p align="center">
   <strong>Seu quadro pessoal Kanban com foco, produtividade e controle total.</strong>
 </p>
 
@@ -20,8 +16,6 @@
 
 ---
 
-## 🖼️ Sistemas e Funcionalidades
-
 <p align="center">
   <img src="assets/images/flowboard-features.png" alt="MB FlowBoard - Sistemas e Funcionalidades" width="100%">
 </p>
@@ -33,7 +27,7 @@
 O **MB FlowBoard** é uma aplicação de gerenciamento de tarefas premium, projetada com estética moderna e foco total na experiência do usuário. Desenvolvido com tecnologias web nativas e backend Node.js + Firebase, oferece um ambiente fluido para organizar seu trabalho com eficiência e estilo.
 
 > [!NOTE]
-> Projeto desenvolvido com **JavaScript Vanilla** no frontend e **Node.js + Express + Firebase Firestore** no backend, com deploy no **Render.com**.
+> Frontend em **JavaScript Vanilla** · Backend em **Node.js + Express + Firebase Firestore** · Deploy no **Render.com**
 
 ---
 
@@ -59,18 +53,9 @@ O **MB FlowBoard** é uma aplicação de gerenciamento de tarefas premium, proje
 
 ## 🛠️ Tecnologias Utilizadas
 
-**Frontend**
-- **HTML5** — Estrutura semântica e acessível
-- **CSS3** — Grid, Flexbox, Variáveis, Animações e Glassmorphism
-- **JavaScript ES6+** — Lógica modular e interatividade
-- **LocalStorage API** — Persistência local de metadados
-- **Lucide Icons** — Ícones modernos
-- **Google Fonts** — Tipografia premium
+**Frontend:** HTML5 · CSS3 · JavaScript ES6+ · LocalStorage · Lucide Icons · Google Fonts
 
-**Backend**
-- **Node.js + Express** — API REST
-- **Firebase Firestore** — Banco de dados em nuvem
-- **Render.com** — Hospedagem do servidor
+**Backend:** Node.js · Express · Firebase Firestore · Render.com
 
 ---
 
@@ -78,51 +63,34 @@ O **MB FlowBoard** é uma aplicação de gerenciamento de tarefas premium, proje
 
 ```text
 kanban-app/
-├── assets/          # Recursos visuais (imagens, ícones, logos)
-├── backend/         # Servidor Node.js + Express + Firebase
-│   ├── server.js    # API REST principal
-│   └── package.json
-├── css/             # Estilização modularizada
-├── js/              # Lógica da aplicação em módulos
+├── assets/          # Imagens, ícones, logos
+├── backend/         # API Node.js + Firebase
+│   └── server.js
+├── css/             # Estilos modulares
+├── js/              # Lógica em módulos
 │   ├── app.js       # Orquestrador principal
-│   ├── api.js       # Camada de comunicação com o backend
+│   ├── api.js       # Comunicação com o backend
 │   ├── storage.js   # Persistência localStorage
-│   ├── tasks.js     # Gestão de tarefas e colunas
+│   ├── tasks.js     # Gestão de tarefas
 │   ├── dragdrop.js  # Drag & Drop nativo
-│   ├── dashboard.js # Dashboard de métricas
-│   └── utils.js     # Utilitários e sanitização XSS
-├── manifest.json    # PWA manifest
+│   └── utils.js     # Utilitários e sanitização
+├── manifest.json    # PWA
 ├── sw.js            # Service Worker
-├── index.html       # Entrada principal
-└── README.md        # Documentação
+└── index.html
 ```
 
 ---
 
 ## ⚙️ Como Rodar Localmente
 
-**1. Clone o repositório:**
 ```bash
 git clone https://github.com/BrunoDev-2026/kanban-app.git
-cd kanban-app
-```
-
-**2. Configure o backend:**
-```bash
-cd backend
+cd kanban-app/backend
 npm install
-```
-
-**3. Crie o arquivo de credenciais Firebase:**
-Coloque o arquivo `serviceAccountKey.json` dentro da pasta `backend/`.
-
-**4. Inicie o servidor:**
-```bash
 node server.js
 ```
 
-**5. Abra o frontend:**
-Abra o arquivo `index.html` no navegador ou use o Live Server do VS Code.
+Abra o `index.html` no navegador ou use o Live Server do VS Code.
 
 ---
 
@@ -130,10 +98,10 @@ Abra o arquivo `index.html` no navegador ou use o Live Server do VS Code.
 
 | Serviço | URL |
 |---|---|
-| **Backend (API)** | https://kanban-app-ff84.onrender.com |
-| **Health Check** | https://kanban-app-ff84.onrender.com/health |
+| **API** | https://kanban-app-ff84.onrender.com |
+| **Health** | https://kanban-app-ff84.onrender.com/health |
 
-> ⚠️ O plano gratuito do Render hiberna após 15 minutos de inatividade. A primeira requisição pode demorar até 50 segundos para "acordar" o servidor.
+> ⚠️ Plano gratuito do Render hiberna após 15 min. Primeira requisição pode demorar ~50s.
 
 ---
 
@@ -146,7 +114,7 @@ Abra o arquivo `index.html` no navegador ou use o Live Server do VS Code.
 
 <p align="center">
   <a href="https://github.com/BrunoDev-2026/kanban-app">
-    <img src="https://img.shields.io/badge/GitHub-kanban--app-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Repositório">
+    <img src="https://img.shields.io/badge/GitHub-kanban--app-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
   </a>
   &nbsp;
   <a href="https://www.linkedin.com/in/bruno-david-de-oliveira-buchardt-721643246">
@@ -157,6 +125,6 @@ Abra o arquivo `index.html` no navegador ou use o Live Server do VS Code.
 ---
 
 <p align="center">
-  <em>"Esse projeto está em constante evolução. Novas funcionalidades e melhorias estão a caminho!"</em><br>
+  <em>"Esse projeto está em constante evolução."</em><br>
   <strong>EVOLUIR É O PLANO. 🚀</strong>
 </p>
