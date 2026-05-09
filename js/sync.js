@@ -52,7 +52,9 @@ async function processOutbox() {
       } else if (op.method === 'DELETE') {
         await window.API.deleteTarefa(op.id);
       }
+      console.log('✅ Sync OK:', op.method, op.id);
     } catch (err) {
+      console.warn('⏳ Sync pendente:', op.method, op.id, err.message);
       remaining.push(op);
     }
   }
@@ -65,6 +67,10 @@ async function processOutbox() {
     scheduleSync(15000);
   } else {
     updateSyncIndicator('synced');
+    // Recarrega da API após sync bem-sucedido para garantir consistência
+    if (window._reloadAfterSync) {
+      window._reloadAfterSync();
+    }
   }
 }
 

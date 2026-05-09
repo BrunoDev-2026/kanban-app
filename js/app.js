@@ -639,5 +639,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadInitialData();
   render();
 
+  // Registra callback para recarregar após sync bem-sucedido
+  window._reloadAfterSync = async () => {
+    await loadInitialData();
+    render();
+  };
+
+  // Processa operações pendentes (outbox) após carregar
+  setTimeout(() => window.Sync.processOutbox(), 1500);
+
   startDashboardAutoRefresh(() => { if (showDashboard) renderDashboard(state, document.getElementById('dashboardSection')); });
 });
