@@ -56,12 +56,12 @@ function initFilters(state, appFilters, renderFn) {
   const exactDateFilter  = document.getElementById('exactDateFilter');
   const clearFiltersBtn  = document.getElementById('clearFiltersBtn');
 
-  // Busca em tempo real
+  // Busca em tempo real com debounce para performance
   if (searchInput) {
     searchInput.addEventListener('input', debounce(e => {
-      appFilters.searchTerm = e.target.value.toLowerCase().trim();
+      appFilters.searchTerm = sanitizeInput(e.target.value, 100).toLowerCase().trim();
       renderFn();
-    }, 200));
+    }, 250));
   }
 
   // Filtro de prioridade

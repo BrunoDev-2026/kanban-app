@@ -733,18 +733,6 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   transform: translateY(-4px);
   box-shadow: 0 20px 35px -10px rgba(0,0,0,0.4);
 }
-/* Fundo principal degradê cinza */
-body {
-  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
-}
-
-/* ========== FUNDO CINZA + ANIMAÇÕES NAS COLUNAS ========== */
-
-/* Fundo principal degradê cinza */
-body {
-  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
-  min-height: 100vh;
-}
 
 /* Colunas: efeito vidro escuro + animação de entrada */
 .column {

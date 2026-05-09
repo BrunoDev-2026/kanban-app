@@ -835,6 +835,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   window.addEventListener('click', () => document.getElementById('moreDropdown').classList.remove('open'));
 
+  // ── Scroll to Top Logic ──
+  const scrollTopBtn = document.getElementById('scrollToTopBtn');
+  if (scrollTopBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth <= 768 && window.scrollY > 400) {
+        scrollTopBtn.classList.add('show');
+      } else {
+        scrollTopBtn.classList.remove('show');
+      }
+    });
+
+    scrollTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
   // ── Pomodoro ──
   document.getElementById('stopTimerBtn').addEventListener('click', stopPomodoro);
   document.getElementById('quitFocusBtn').addEventListener('click', stopPomodoro);
@@ -919,23 +935,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function initApp() {
     try {
       const tarefas = await window.API.fetchTarefas();
-      
-      // Tenta carregar metadados locais (Título/Emoji) para não perder personalização
       const local = typeof loadState === 'function' ? loadState() : null;
       if (local) {
         state.title = local.title || state.title;
         state.emoji = local.emoji !== undefined ? local.emoji : state.emoji;
         state.profile = local.profile || state.profile;
       }
-
       state.columns = tarefasToColumns(tarefas);
       render();
     } catch (err) {
-      console.error('Erro ao carregar tarefas:', err);
-      state.columns = tarefasToColumns([]);
+      console.warn('📶 Modo Offline: Carregando dados locais.');
+      const local = typeof loadState === 'function' ? loadState() : null;
+      if (local) Object.assign(state, local);
+      else state.columns = tarefasToColumns([]);
       render();
+      if (window.showToast) showToast('📴 Você está offline. Usando dados locais.', 5000);
     }
   }
+
+  // Monitorar conexão em tempo real
+  window.addEventListener('online', () => {
+    document.getElementById('offlineIndicator').style.display = 'none';
+    showToast('🌐 Conexão restaurada! Sincronizando...');
+    initApp(); // Recarrega dados da API ao voltar online
+  });
+  window.addEventListener('offline', () => {
+    document.getElementById('offlineIndicator').style.display = 'flex';
+    showToast('📴 Você está offline.');
+  });
 
   await initApp();
 

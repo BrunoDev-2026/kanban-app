@@ -12,11 +12,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
 
+  <link rel="manifest" href="manifest.json">
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- CSS Modular (ordem importa) -->
-  <link rel="stylesheet" href="css/main.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/animations.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/board.css" />
@@ -32,7 +34,7 @@
       <div class="user-avatar-wrapper" id="userProfileTrigger" title="Configurações de Perfil">
         <div class="user-avatar" id="headerAvatar">--</div>
       </div>
-      <img src="assets/logo/logo.png" alt="Logo Kanban" class="app-logo">
+      <img src="assets/logo/logo.png" alt="Logo Kanban" class="app-logo" width="175" height="66">
     </div>
 
     <div class="header-center">
@@ -50,6 +52,10 @@
         <span id="boardEmojiText"></span>
       </button>
       <span class="board-title" id="boardTitleDisplay" title="Clique para editar o nome do quadro" role="button" tabindex="0">RH - Marina</span>
+      
+      <div id="offlineIndicator" class="offline-badge" style="display: none;" title="Modo Offline">
+        <i data-lucide="wifi-off"></i>
+      </div>
 
       <!-- Contador de concluídas -->
       <div class="header-stats" title="Tarefas concluídas">
@@ -378,9 +384,16 @@
   <script src="js/avatar.js"></script>
   <script src="js/shortcuts.js"></script>
   <script src="js/tasks.js"></script>
-  <script src="js/app.js?v={{VERSION}}"></script>
+  <script src="js/app.js"></script>
 
   <!-- script.js (raiz) é legado: não deve ser executado -->
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
 </body>
 </html>

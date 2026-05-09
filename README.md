@@ -53,6 +53,7 @@ O **MB FlowBoard** é uma aplicação de gerenciamento de tarefas premium, proje
 | 👤 **Perfil de Usuário** | Avatar, nome, cor e preferências do timer |
 | 📦 **Arquivo** | Archive tarefas concluídas |
 | 💾 **Exportar / Imprimir** | Exporte em JSON ou imprima offline |
+| 📱 **PWA** | Instale como app no celular ou desktop |
 
 ---
 
@@ -89,8 +90,9 @@ kanban-app/
 │   ├── tasks.js     # Gestão de tarefas e colunas
 │   ├── dragdrop.js  # Drag & Drop nativo
 │   ├── dashboard.js # Dashboard de métricas
-│   └── ...
-├── data/            # Mock data
+│   └── utils.js     # Utilitários e sanitização XSS
+├── manifest.json    # PWA manifest
+├── sw.js            # Service Worker
 ├── index.html       # Entrada principal
 └── README.md        # Documentação
 ```

@@ -49,13 +49,13 @@ function openCardModal(colId, cardId = null, state) {
 
 // ==================== SALVAR (criar/editar) ====================
 async function saveCard(state, renderFn) {
-  const title = document.getElementById('cardTitleInput').value.trim();
+  const title = sanitizeInput(document.getElementById('cardTitleInput').value, 80);
   if (!title) {
     showToast('⚠️ O título é obrigatório.');
     return;
   }
 
-  const desc = document.getElementById('cardDescInput').value.trim().slice(0, 500);
+  const desc = sanitizeInput(document.getElementById('cardDescInput').value, 500);
   const date = document.getElementById('cardDateInput').value;
   const tags = parseTags(document.getElementById('cardTagsInput').value);
   const col = state.columns.find(c => c.id === editingCardColId);
