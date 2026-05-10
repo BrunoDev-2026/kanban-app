@@ -19,7 +19,8 @@ async function buildSW() {
         'update-version.js',
         'backend/**/*',
         '.git/**/*',
-        '.github/**/*'
+        '.github/**/*',
+        'sw.js' // O Service Worker NUNCA deve cachear a si mesmo
       ]
     });
     console.log(`[Workbox] Injetou ${count} arquivos, totalizando ${size} bytes.`);

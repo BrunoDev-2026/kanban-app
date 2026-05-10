@@ -27,6 +27,16 @@ jobs:
       - name: Generate Workbox Precache Manifest
         run: node workbox-build-script.js
 
+      - name: Lighthouse Audit
+        uses: treosh/lighthouse-ci-action@v9
+        with:
+          urls: |
+            https://kanban-app-p91q.onrender.com/
+          uploadArtifacts: true # Salva o relatório nos artefatos do GitHub
+          temporaryPublicStorage: true # Cria um link público temporário para o relatório
+          configPath: './lighthouserc.json'
+        continue-on-error: true # Não trava o deploy se a nota for baixa, mas avisa
+
       - name: Compress Assets (Gzip & Brotli)
         uses: sardari/action-compress-assets@v1.0.0
         with:

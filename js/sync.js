@@ -18,6 +18,7 @@ let apiDownAttempts = 0;
 let retryAttempt = 0;
 const BASE_DELAY = 2000; // 2 segundos
 const MAX_DELAY  = 300000; // 5 minutos (máximo)
+const MAX_RETRIES = 7; // Limite enterprise de tentativas
 
 // Configurações para Log Expiration
 const LOG_EXPIRATION_DAYS = 7; // Logs expiram após 7 dias
@@ -34,6 +35,13 @@ function getOutbox() {
 
 function setOutbox(queue) {
   localStorage.setItem(OUTBOX_KEY, JSON.stringify(queue));
+}
+
+/**
+ * Gera um Jitter aleatório para evitar colisões de rede
+ */
+function getJitter() {
+  return Math.random() * 1000;
 }
 
 /**
@@ -91,11 +99,16 @@ function enqueue(op) {
 
 function scheduleSync(delay) {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(processOutbox, delay || 2000);
+  const finalDelay = (delay || BASE_DELAY) + getJitter();
+  console.log(`[Sync] Próxima tentativa em ${(finalDelay / 1000).toFixed(1)}s (Attempt: ${retryAttempt})`);
+  syncTimer = setTimeout(processOutbox, finalDelay);
 }
 
 async function processOutbox() {
-  if (isSyncing) return;
+  if (isSyncing || !navigator.onLine) {
+    console.log('[Sync] Processo pausado: isSyncing=', isSyncing, 'Online=', navigator.onLine);
+    return;
+  }
   
   try {
     let queue = getOutbox();
@@ -156,10 +169,16 @@ async function processOutbox() {
     setOutbox(remaining);
 
     if (remaining.length > 0) {
-      retryAttempt++;
-      const nextDelay = Math.min(BASE_DELAY * Math.pow(2, retryAttempt), MAX_DELAY);
-      updateSyncIndicator('pending', remaining.length);
-      scheduleSync(nextDelay);
+      if (retryAttempt < MAX_RETRIES) {
+        retryAttempt++;
+        const nextDelay = Math.min(BASE_DELAY * Math.pow(2, retryAttempt), MAX_DELAY);
+        updateSyncIndicator('pending', remaining.length, `Falha parcial. Retentando em breve...`);
+        scheduleSync(nextDelay);
+      } else {
+        console.error('[Sync] Limite de tentativas atingido para alguns itens.');
+        updateSyncIndicator('pending', remaining.length, '⚠️ Erro persistente no Sync');
+        retryAttempt = 0; // Reseta para permitir nova tentativa manual
+      }
     } else {
       retryAttempt = 0;
       updateSyncIndicator('synced');

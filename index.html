@@ -30,12 +30,12 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- CSS Modular (ordem importa) -->
-  <link rel="stylesheet" href="/css/main.css?v=20260510025614" />
-  <link rel="stylesheet" href="/css/animations.css?v=20260510025614" />
-  <link rel="stylesheet" href="/css/dashboard.css?v=20260510025614" />
-  <link rel="stylesheet" href="/css/board.css?v=20260510025614" />
-  <link rel="stylesheet" href="/css/components.css?v=20260510025614" />
-  <link rel="stylesheet" href="/css/responsive.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/main.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/animations.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/dashboard.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/board.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/components.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/responsive.css?v={{VERSION}}" />
 
 </head>
 <body>
@@ -372,38 +372,49 @@
   <div class="toast" id="toast" role="status" onclick="this.classList.remove('show')" title="Clique para fechar"></div>
 
   <!-- ===== JAVASCRIPT MODULAR (ordem importa) ===== -->
-  <script src="/js/api.js?v=20260510025614"></script>
-  <script src="/js/utils.js?v=20260510025614"></script>
-  <script src="/js/storage.js?v=20260510025614"></script>
-  <script src="/js/sync.js?v=20260510025614"></script>
-  <script src="/js/notifications.js?v=20260510025614"></script>
-  <script src="/js/tags.js?v=20260510025614"></script>
-  <script src="/js/filters.js?v=20260510025614"></script>
-  <script src="/js/metrics-logic.js?v=20260510025614"></script>
-  <script src="/js/dashboard.js?v=20260510025614"></script>
-  <script src="/js/dragdrop.js?v=20260510025614"></script>
-  <script src="/js/avatar.js?v=20260510025614"></script>
-  <script src="/js/shortcuts.js?v=20260510025614"></script>
-  <script src="/js/tasks.js?v=20260510025614"></script>
-  <script src="/js/app.js?v=20260510025614"></script>
+  <script src="/js/api.js?v={{VERSION}}"></script>
+  <script src="/js/utils.js?v={{VERSION}}"></script>
+  <script src="/js/storage.js?v={{VERSION}}"></script>
+  <script src="/js/sync.js?v={{VERSION}}"></script>
+  <script src="/js/notifications.js?v={{VERSION}}"></script>
+  <script src="/js/tags.js?v={{VERSION}}"></script>
+  <script src="/js/filters.js?v={{VERSION}}"></script>
+  <script src="/js/metrics-logic.js?v={{VERSION}}"></script>
+  <script src="/js/dashboard.js?v={{VERSION}}"></script>
+  <script src="/js/dragdrop.js?v={{VERSION}}"></script>
+  <script src="/js/avatar.js?v={{VERSION}}"></script>
+  <script src="/js/shortcuts.js?v={{VERSION}}"></script>
+  <script src="/js/tasks.js?v={{VERSION}}"></script>
+  <script src="/js/app.js?v={{VERSION}}"></script>
 
   <!-- script.js (raiz) é legado: não deve ser executado -->
 
   <script>
     if ('serviceWorker' in navigator) {
+      let refreshing = false;
+      // Evento disparado quando um novo Service Worker assume o controle (self.skipWaiting + self.clients.claim)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+
+        // Verifica se existem dados não sincronizados antes de sugerir o reload
+        const hasPendingSync = window.Sync && window.Sync.getOutbox().length > 0;
+        
+        if (hasPendingSync) {
+          const toast = document.getElementById('toast');
+          toast.innerHTML = `
+            <span>Nova versão disponível! Sincronize seus dados antes de atualizar.</span>
+            <button onclick="window.location.reload()" class="btn-sync-retry" style="margin-left:10px">Atualizar Agora</button>
+          `;
+          toast.classList.add('show');
+        } else {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=20260510025614').then(reg => {
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // Exibe toast customizado com botão
-                const toast = document.getElementById('toast');
-                toast.innerHTML = 'Nova versão disponível! <button onclick="location.reload()" class="btn-sync-retry">Atualizar Agora</button>';
-                toast.classList.add('show');
-              }
-            });
-          });
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          console.log('SW registrado!');
         }).catch(err => console.log('SW error:', err));
       });
     }

@@ -177,6 +177,12 @@ app.delete('/tarefas/:id', async (req, res) => {
   }
 });
 
+// Serve sw.js with no-cache headers to ensure it's always fresh
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.sendFile(path.join(__dirname, "..", "sw.js"));
+});
+
 // ===== FRONTEND STATIC FILES =====
 // Serve arquivos estáticos (index.html, js/, css/)
 app.use(express.static(path.join(__dirname, '..')));

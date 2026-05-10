@@ -4,10 +4,12 @@ const path = require('path');
 
 // Define o nome do placeholder
 const PLACEHOLDER = '{{VERSION}}';
-// Usa o hash do GitHub se disponível, caso contrário gera um timestamp (fallback local)
-const version = process.env.GITHUB_SHA 
-    ? process.env.GITHUB_SHA.substring(0, 7) 
-    : new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+
+// No Render, usamos RENDER_GIT_COMMIT para uma versão estável entre deploys.
+// Isso evita que o Service Worker mude a cada reinicialização do servidor.
+const version = process.env.RENDER_GIT_COMMIT 
+    ? process.env.RENDER_GIT_COMMIT.substring(0, 7) 
+    : (process.env.GITHUB_SHA ? process.env.GITHUB_SHA.substring(0, 7) : 'v1.0.0');
 
 // Caminho do seu index.html
 const indexPath = path.join(__dirname, 'index.html');
@@ -18,11 +20,14 @@ function updateFile(filePath) {
     if (fs.existsSync(filePath)) {
         let content = fs.readFileSync(filePath, 'utf8');
         if (content.includes(PLACEHOLDER)) {
+            const count = content.split(PLACEHOLDER).length - 1;
             content = content.split(PLACEHOLDER).join(version);
+            console.log(`✅ [BUILD] ${path.basename(filePath)}: Substituídos ${count} placeholders por "${version}"`);
+        } else {
+            console.log(`⚠️ [BUILD] ${path.basename(filePath)}: Nenhum placeholder "{{VERSION}}" encontrado.`);
         }
 
         fs.writeFileSync(filePath, content, 'utf8');
-        console.log(`✅ Arquivo ${path.basename(filePath)} atualizado com sucesso.`);
     }
 }
 
