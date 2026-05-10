@@ -27,12 +27,6 @@ function onDragStart(e) {
   dragCardPriority = priorityBar ? 
     Array.from(priorityBar.classList).find(c => ['low', 'medium', 'high'].includes(c)) : 'low';
 
-  // Ativa pulso no título se o card for de alta prioridade
-  if (dragCardPriority === 'high') {
-    const titleEl = document.getElementById('boardTitleDisplay');
-    if (titleEl) titleEl.classList.add('title-pulse-urgent');
-  }
-
   // Adiciona classes para animação via CSS
   requestAnimationFrame(() => {
     e.currentTarget.classList.add('dragging');
@@ -57,16 +51,9 @@ function onDragEnd(e) {
   
   // Limpa estados visuais de todas as colunas
   removeGhost();
-  const titleEl = document.getElementById('boardTitleDisplay');
-  if (titleEl) {
-    titleEl.style.removeProperty('color');
-    titleEl.classList.remove('title-pulse-urgent');
-  }
 
   document.querySelectorAll('.column').forEach(c => {
     c.classList.remove('drag-over');
-    c.style.removeProperty('--drag-grid-color');
-    c.style.removeProperty('--drag-bg-color');
   });
   dragCardPriority = null;
 }
@@ -82,22 +69,6 @@ function onDragOver(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.classList.contains('drag-over')) {
     col.classList.add('drag-over');
-    
-    // Mapeamento de cores baseado na prioridade do card sendo arrastado
-    const colors = {
-      high:   { grid: 'rgba(239, 68, 68, 0.25)', bg: 'rgba(50, 20, 20, 0.6)', title: '#EF4444' },
-      medium: { grid: 'rgba(245, 158, 11, 0.25)', bg: 'rgba(50, 40, 20, 0.6)', title: '#F59E0B' },
-      low:    { grid: 'rgba(16, 185, 129, 0.25)', bg: 'rgba(20, 50, 30, 0.6)', title: '#10B981' }
-    };
-
-    const selected = colors[dragCardPriority || 'low'];
-    col.style.setProperty('--drag-grid-color', selected.grid);
-    col.style.setProperty('--drag-bg-color', selected.bg);
-
-    // Altera a cor do título do quadro
-    const titleEl = document.getElementById('boardTitleDisplay');
-    if (titleEl) titleEl.style.color = selected.title;
-
     if (col.querySelector('.column-empty-state')) playMelody('magnetic', dragCardPriority);
   }
 
@@ -163,12 +134,6 @@ function onDragLeave(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.contains(e.relatedTarget)) {
     col.classList.remove('drag-over');
-    if (dragCardPriority !== 'high') {
-       const titleEl = document.getElementById('boardTitleDisplay');
-       if (titleEl) titleEl.style.removeProperty('color');
-    }
-    col.style.removeProperty('--drag-grid-color');
-    col.style.removeProperty('--drag-bg-color');
     removeGhost();
   }
 }
@@ -201,11 +166,6 @@ function onDrop(e, state, renderFn) {
   if (tgtCol.limit > 0 && tgtCol.cards.length >= tgtCol.limit && srcCol.id !== tgtCol.id) {
     showToast(`🚫 Limite de WIP atingido na coluna "${tgtCol.title}"!`);
     playMelody('alert');
-    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-
-    // Animação de shake na coluna
-    targetColEl.classList.add('wip-shake');
-    setTimeout(() => targetColEl.classList.remove('wip-shake'), 500);
     return;
   }
 
@@ -436,8 +396,6 @@ function initTouchDnDFallback(boardEl, state, renderFn) {
     pressTimer = null;
 
     boardEl.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
-    // remove any wip shake
-    boardEl.querySelectorAll('.column').forEach(c => c.classList.remove('wip-shake'));
   }
 
   function startManualDrag(cardEl, pointerEvent) {
@@ -501,8 +459,6 @@ function initTouchDnDFallback(boardEl, state, renderFn) {
 
     if (tgtCol.limit > 0 && tgtCol.cards.length >= tgtCol.limit && srcCol.id !== tgtCol.id) {
       // WIP feedback
-      manualColEl.classList.add('wip-shake');
-      setTimeout(() => manualColEl.classList.remove('wip-shake'), 350);
       if ('vibrate' in navigator) navigator.vibrate([20, 50, 20]);
       return;
     }

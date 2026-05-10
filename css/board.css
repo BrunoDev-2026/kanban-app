@@ -61,19 +61,16 @@
 
 /* ── Estilo para a coluna vazia ── */
 .column.column-is-empty {
-  animation: intenseRainbowPulse 6s infinite ease-in-out; /* Ciclo de cores mais lento e intenso */
-  transition: background 0.5s ease, border-color 0.5s ease;
-  border-width: 2px; /* Borda um pouco mais grossa para destacar a cor */
 }
 
 /* ── Glow na grade ao arrastar sobre coluna vazia ── */
 .column:has(.column-empty-state).drag-over {
   background-image: 
     radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.12) 0%, transparent 100%),
-    linear-gradient(var(--drag-grid-color, rgba(37, 99, 235, 0.1)) 1px, transparent 1px),
-    linear-gradient(90deg, var(--drag-grid-color, rgba(37, 99, 235, 0.1)) 1px, transparent 1px);
-  background-color: var(--drag-bg-color, rgba(40, 45, 60, 0.6));
-  box-shadow: var(--shadow-glow), var(--shadow-col), inset 0 0 50px var(--drag-grid-color, rgba(37, 99, 235, 0.2));
+    linear-gradient(rgba(37, 99, 235, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
+  background-color: rgba(40, 45, 60, 0.6);
+  box-shadow: var(--shadow-glow), var(--shadow-col), inset 0 0 50px rgba(37, 99, 235, 0.2);
   transform: scale(1.05); /* Simula distorção de lente */
   z-index: 10;
 }
@@ -82,25 +79,6 @@
   border-color: var(--accent);
   box-shadow: var(--shadow-glow), var(--shadow-col);
   background: rgba(37, 99, 235, 0.07);
-}
-
-/* ── WIP Limit ── */
-.column.limit-exceeded {
-  animation: wipLimitGlow 2s infinite ease-in-out;
-}
-.column.limit-exceeded.drag-over {
-  /* Combina o glow com o tremor constante */
-  animation: wipLimitGlow 2s infinite ease-in-out, constantShake 0.1s infinite linear !important;
-}
-.column.limit-exceeded .column-count {
-  background: var(--accent2);
-  color: #fff;
-}
-
-.column.limit-exceeded .column-title {
-  color: var(--accent2) !important;
-  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-  animation: titleGlowPulse 2s infinite ease-in-out;
 }
 
 /* ── Progress Bar (WIP) ── */
