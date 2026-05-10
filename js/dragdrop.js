@@ -335,6 +335,10 @@ function removeGhost() {
  * @param {Function} renderFn - Função de render
  */
 function initDragDropArea(area, state, renderFn) {
+  // evita rebind acidental
+  if (!area || area.dataset.ddBound === '1') return;
+  area.dataset.ddBound = '1';
+
   area.addEventListener('dragover',  onDragOver);
   area.addEventListener('dragleave', onDragLeave);
   area.addEventListener('drop',      e => onDrop(e, state, renderFn));
@@ -345,3 +349,268 @@ function initDragDropArea(area, state, renderFn) {
     card.addEventListener('dragend',   onDragEnd);
   });
 }
+
+function initAllDragDrop(state, renderFn) {
+  const board = document.getElementById('board');
+  if (!board) return;
+
+  // reseta flags em cada render (DOM é recriado)
+  board.querySelectorAll('.cards-area').forEach(a => {
+    a.dataset.ddBound = '';
+  });
+
+  board.querySelectorAll('.cards-area').forEach(area => {
+    initDragDropArea(area, state, renderFn);
+  });
+
+  // fallback touch/pointer para mobile (long-press)
+  if (!board.dataset.ddTouchBound) {
+    board.dataset.ddTouchBound = '1';
+    initTouchDnDFallback(board, state, renderFn);
+  }
+}
+
+// Exposição para o app.js chamar depois do render
+window.DragDrop = { initAllDragDrop };
+
+/**
+ * Fallback para mobile: long-press + arrasto manual
+ * - Só ativa em pointer/touch
+ * - Não interfere no HTML5 DnD (mouse continua usando dragstart/drop)
+ */
+function initTouchDnDFallback(boardEl, state, renderFn) {
+  let pressTimer = null;
+  let dragMode = false;
+  let activeCardId = null;
+  let activePointerId = null;
+
+  // ghost manual
+  let manualGhost = null;
+  let manualColEl = null;
+  let startClientX = 0;
+  let startClientY = 0;
+
+  const LONG_PRESS_MS = 250;
+  const MOVE_CANCEL_PX = 10;
+
+  function findCardElFromTarget(target) {
+    return target?.closest?.('.card');
+  }
+
+  function findColElFromPoint(clientX, clientY) {
+    const el = document.elementFromPoint(clientX, clientY);
+    return el?.closest?.('.column') || null;
+  }
+
+  function ensureGhost() {
+    if (manualGhost) return;
+    manualGhost = document.createElement('div');
+    manualGhost.className = 'card card-ghost-manual';
+    manualGhost.style.position = 'fixed';
+    manualGhost.style.left = '-9999px';
+    manualGhost.style.top = '-9999px';
+    manualGhost.style.zIndex = '99999';
+    manualGhost.style.pointerEvents = 'none';
+    manualGhost.style.width = 'auto';
+    manualGhost.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(manualGhost);
+  }
+
+  function positionGhost(x, y) {
+    if (!manualGhost) return;
+    manualGhost.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+  }
+
+  function teardown() {
+    dragMode = false;
+    activeCardId = null;
+    activePointerId = null;
+    manualColEl = null;
+    startClientX = 0;
+    startClientY = 0;
+    if (manualGhost) {
+      manualGhost.remove();
+      manualGhost = null;
+    }
+    if (pressTimer) clearTimeout(pressTimer);
+    pressTimer = null;
+
+    boardEl.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+    // remove any wip shake
+    boardEl.querySelectorAll('.column').forEach(c => c.classList.remove('wip-shake'));
+  }
+
+  function startManualDrag(cardEl, pointerEvent) {
+    const cardId = cardEl?.dataset?.cardId;
+    if (!cardId) return;
+
+    dragMode = true;
+    activeCardId = cardId;
+    activePointerId = pointerEvent.pointerId;
+
+    ensureGhost();
+
+    // clone visual content (safe: we use existing DOM)
+    manualGhost.innerHTML = cardEl.innerHTML;
+    manualGhost.classList.add('manual');
+
+    const rect = cardEl.getBoundingClientRect();
+    // place ghost offset to keep touch stable
+    const offsetX = pointerEvent.clientX - rect.left;
+    const offsetY = pointerEvent.clientY - rect.top;
+
+    manualGhost.style.width = rect.width + 'px';
+
+    // initial position
+    positionGhost(pointerEvent.clientX - offsetX, pointerEvent.clientY - offsetY);
+
+    // find initial target column
+    manualColEl = findColElFromPoint(pointerEvent.clientX, pointerEvent.clientY);
+    if (manualColEl) manualColEl.classList.add('drag-over');
+
+    // vibrate small feedback
+    if ('vibrate' in navigator) navigator.vibrate(15);
+  }
+
+  function manualMove(pointerEvent) {
+    if (!dragMode || pointerEvent.pointerId !== activePointerId) return;
+
+    // move ghost
+    positionGhost(pointerEvent.clientX, pointerEvent.clientY);
+
+    const colEl = findColElFromPoint(pointerEvent.clientX, pointerEvent.clientY);
+    if (colEl && manualColEl && colEl !== manualColEl) {
+      // column changed
+      manualColEl.classList.remove('drag-over');
+      manualColEl = colEl;
+      manualColEl.classList.add('drag-over');
+    } else if (colEl && (!manualColEl || colEl === manualColEl)) {
+      manualColEl = colEl;
+      if (manualColEl) manualColEl.classList.add('drag-over');
+    }
+
+    if (!manualColEl) return;
+
+    // reorder by y within column
+    const targetColId = manualColEl.dataset.colId;
+    if (!targetColId) return;
+
+    const srcCol = state.columns.find(c => c.cards.some(k => String(k.id) === String(activeCardId)));
+    const tgtCol = state.columns.find(c => c.id === targetColId);
+    if (!srcCol || !tgtCol) return;
+
+    if (tgtCol.limit > 0 && tgtCol.cards.length >= tgtCol.limit && srcCol.id !== tgtCol.id) {
+      // WIP feedback
+      manualColEl.classList.add('wip-shake');
+      setTimeout(() => manualColEl.classList.remove('wip-shake'), 350);
+      if ('vibrate' in navigator) navigator.vibrate([20, 50, 20]);
+      return;
+    }
+
+    const cardIdx = srcCol.cards.findIndex(c => String(c.id) === String(activeCardId));
+    if (cardIdx === -1) return;
+
+    // compute insert index based on pointer Y
+    const cardsArea = manualColEl.querySelector('.cards-area');
+    if (!cardsArea) return;
+    const afterEl = getDragAfterElement(cardsArea, pointerEvent.clientY);
+
+    let insertIdx = tgtCol.cards.length;
+    if (afterEl && afterEl.dataset.cardId) {
+      const idx = tgtCol.cards.findIndex(c => String(c.id) === String(afterEl.dataset.cardId));
+      if (idx !== -1) insertIdx = idx;
+    }
+
+    // apply move in state only while dragging manually
+    // remove from src (if moved already, this keeps stable)
+    const [card] = srcCol.cards.splice(cardIdx, 1);
+    if (tgtCol.id !== srcCol.id) {
+      tgtCol.cards.splice(insertIdx, 0, card);
+    } else {
+      // same column: reinsert at new position
+      // adjust insertIdx if removing earlier shifts indices
+      if (insertIdx > cardIdx) insertIdx = insertIdx; // keep behavior simple
+      tgtCol.cards.splice(insertIdx, 0, card);
+    }
+
+    renderFn();
+  }
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    // only touch/pen; ignore mouse to avoid fighting with HTML5 DnD
+    if (e.pointerType === 'mouse') return;
+
+    const cardEl = findCardElFromTarget(e.target);
+    if (!cardEl) return;
+
+    // capture coordinates
+    startClientX = e.clientX;
+    startClientY = e.clientY;
+    activePointerId = e.pointerId;
+
+    if (pressTimer) clearTimeout(pressTimer);
+
+    pressTimer = setTimeout(() => {
+      // cancel if user moved too much
+      dragMode = false; // will be set in startManualDrag
+      startManualDrag(cardEl, e);
+      pressTimer = null;
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  boardEl.addEventListener('pointermove', (e) => {
+    if (!dragMode) {
+      if (!activePointerId) return;
+      const dx = Math.abs(e.clientX - startClientX);
+      const dy = Math.abs(e.clientY - startClientY);
+      if ((dx + dy) > MOVE_CANCEL_PX && pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+      return;
+    }
+
+    manualMove(e);
+  }, { passive: true });
+
+  boardEl.addEventListener('pointerup', (e) => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+
+    if (dragMode) {
+      // finalizar: persistir via outbox
+      const tgtColEl = manualColEl;
+      if (tgtColEl && activeCardId) {
+        const targetColId = tgtColEl.dataset.colId;
+        const srcCol = state.columns.find(c => c.cards.some(k => String(k.id) === String(activeCardId)));
+        const tgtCol = state.columns.find(c => c.id === targetColId);
+
+        if (srcCol && tgtCol && srcCol.id !== tgtCol.id) {
+          window.Sync.enqueue({ method: 'PUT', id: activeCardId, payload: {
+            titulo:  (tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.title) || '',
+            coluna:  tgtCol.title,
+            desc:    (tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.desc) || '',
+            date:    (tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.date) || '',
+            tags:    (Array.isArray(tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.tags) ? tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.tags : []),
+            priority:(tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.priority) || 'low',
+            checklist: (Array.isArray(tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.checklist) ? tgtCol.cards.find(k => String(k.id) === String(activeCardId))?.checklist : [])
+          }});
+        }
+      }
+    }
+
+    teardown();
+  });
+
+  boardEl.addEventListener('pointercancel', () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+    teardown();
+  });
+}
+
+

@@ -290,7 +290,8 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '</div>'+
     '<button class="add-card-btn" data-col="'+col.id+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Adicionar tarefa</button>';
 
-  initDragDropArea(el.querySelector('.cards-area'),state,render);
+// DnD centralizado: initDragDropArea desativado aqui para evitar duplicidade com js/dragdrop.js
+// initDragDropArea(el.querySelector('.cards-area'), state, render);
 
   const handle=el.querySelector('.column-drag-handle');
   if(handle){
@@ -345,7 +346,13 @@ function render(){
     cards.sort((a,b)=>(pw[b.priority]||0)-(pw[a.priority]||0));
     board.appendChild(buildColumn({...col,cards},isDone,idx>0,idx<state.columns.length-1));
   });
+
   lucide.createIcons();
+
+  // Re-ativar DnD (cards) exclusivamente pelo js/dragdrop.js
+  if (window.DragDrop && typeof window.DragDrop.initAllDragDrop === 'function') {
+    window.DragDrop.initAllDragDrop(state, render);
+  }
 }
 
 /* ════════ MODAIS ════════ */

@@ -9,6 +9,8 @@
 /** Chave principal do localStorage */
 const STORAGE_KEY = 'kanflow_state';
 const STORAGE_THEME_KEY = 'kanflow_theme';
+// compat: alguns fluxos legados usam canflow_state/kanflow_theme
+
 
 /* ── Gestão de Histórico (Undo/Redo) ── */
 let undoStack = [];
