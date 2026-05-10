@@ -79,6 +79,8 @@
     linear-gradient(90deg, var(--drag-grid-color, rgba(108, 99, 255, 0.1)) 1px, transparent 1px);
   background-color: var(--drag-bg-color, rgba(40, 45, 60, 0.6));
   box-shadow: var(--shadow-glow), var(--shadow-col), inset 0 0 50px var(--drag-grid-color, rgba(108, 99, 255, 0.2));
+  transform: scale(1.05); /* Simula distorção de lente */
+  z-index: 10;
 }
 
 .column.drag-over {
@@ -90,6 +92,10 @@
 /* ── WIP Limit ── */
 .column.limit-exceeded {
   animation: wipLimitGlow 2s infinite ease-in-out;
+}
+.column.limit-exceeded.drag-over {
+  /* Combina o glow com o tremor constante */
+  animation: wipLimitGlow 2s infinite ease-in-out, constantShake 0.1s infinite linear !important;
 }
 .column.limit-exceeded .column-count {
   background: var(--accent2);
@@ -487,6 +493,18 @@
   background: rgba(108, 99, 255, 0.06);
   min-height: 58px;
   animation: ghostPulse 1.2s ease-in-out infinite;
+}
+
+/* ── Partícula de Faísca ── */
+.spark-particle {
+  position: absolute;
+  width: 4px;
+  height: 12px;
+  background: #60A5FA; /* Azul elétrico */
+  border-radius: 2px;
+  box-shadow: 0 0 10px #3B82F6, 0 0 20px #fff;
+  pointer-events: none;
+  z-index: 100;
 }
 
 /* ══════════════════════════════════════════

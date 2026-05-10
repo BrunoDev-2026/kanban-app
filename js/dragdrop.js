@@ -11,6 +11,7 @@ let dragCardId = null;
 let dragColId  = null;
 let dragCardPriority = null;
 let ghostEl    = null;
+let lastSparkTime = 0;
 
 /**
  * Handler: início do arrasto de um card
@@ -25,6 +26,12 @@ function onDragStart(e) {
   const priorityBar = e.currentTarget.querySelector('.card-priority-bar');
   dragCardPriority = priorityBar ? 
     Array.from(priorityBar.classList).find(c => ['low', 'medium', 'high'].includes(c)) : 'low';
+
+  // Ativa pulso no título se o card for de alta prioridade
+  if (dragCardPriority === 'high') {
+    const titleEl = document.getElementById('boardTitleDisplay');
+    if (titleEl) titleEl.classList.add('title-pulse-urgent');
+  }
 
   // Adiciona classes para animação via CSS
   requestAnimationFrame(() => {
@@ -50,6 +57,12 @@ function onDragEnd(e) {
   
   // Limpa estados visuais de todas as colunas
   removeGhost();
+  const titleEl = document.getElementById('boardTitleDisplay');
+  if (titleEl) {
+    titleEl.style.removeProperty('color');
+    titleEl.classList.remove('title-pulse-urgent');
+  }
+
   document.querySelectorAll('.column').forEach(c => {
     c.classList.remove('drag-over');
     c.style.removeProperty('--drag-grid-color');
@@ -72,16 +85,30 @@ function onDragOver(e) {
     
     // Mapeamento de cores baseado na prioridade do card sendo arrastado
     const colors = {
-      high:   { grid: 'rgba(239, 68, 68, 0.25)', bg: 'rgba(50, 20, 20, 0.6)' },
-      medium: { grid: 'rgba(245, 158, 11, 0.25)', bg: 'rgba(50, 40, 20, 0.6)' },
-      low:    { grid: 'rgba(16, 185, 129, 0.25)', bg: 'rgba(20, 50, 30, 0.6)' }
+      high:   { grid: 'rgba(239, 68, 68, 0.25)', bg: 'rgba(50, 20, 20, 0.6)', title: '#EF4444' },
+      medium: { grid: 'rgba(245, 158, 11, 0.25)', bg: 'rgba(50, 40, 20, 0.6)', title: '#F59E0B' },
+      low:    { grid: 'rgba(16, 185, 129, 0.25)', bg: 'rgba(20, 50, 30, 0.6)', title: '#10B981' }
     };
 
     const selected = colors[dragCardPriority || 'low'];
     col.style.setProperty('--drag-grid-color', selected.grid);
     col.style.setProperty('--drag-bg-color', selected.bg);
 
+    // Altera a cor do título do quadro
+    const titleEl = document.getElementById('boardTitleDisplay');
+    if (titleEl) titleEl.style.color = selected.title;
+
     if (col.querySelector('.column-empty-state')) playMelody('magnetic', dragCardPriority);
+  }
+
+  // ── Efeito de faíscas contínuas se o limite WIP estiver atingido ──
+  if (col && col.classList.contains('limit-exceeded')) {
+    const now = Date.now();
+    if (now - lastSparkTime > 150) { // Cria uma faísca a cada 150ms
+      createSparkEffect(col, e.clientX, e.clientY);
+      playMelody('shortCircuit');
+      lastSparkTime = now;
+    }
   }
 
   const afterEl = getDragAfterElement(e.currentTarget, e.clientY);
@@ -105,6 +132,30 @@ function onDragOver(e) {
 }
 
 /**
+ * Cria faíscas elétricas no ponto do mouse
+ */
+function createSparkEffect(parent, mouseX, mouseY) {
+  const rect = parent.getBoundingClientRect();
+  const x = mouseX - rect.left;
+  const y = mouseY - rect.top;
+
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark-particle';
+    s.style.left = `${x}px`;
+    s.style.top = `${y}px`;
+    
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 60;
+    s.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
+    s.style.animation = `sparkFlash ${0.3 + Math.random() * 0.3}s ease-out forwards`;
+    
+    parent.appendChild(s);
+    setTimeout(() => s.remove(), 600);
+  }
+}
+
+/**
  * Handler: card saindo da área de drop
  * @param {DragEvent} e
  */
@@ -112,6 +163,10 @@ function onDragLeave(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.contains(e.relatedTarget)) {
     col.classList.remove('drag-over');
+    if (dragCardPriority !== 'high') {
+       const titleEl = document.getElementById('boardTitleDisplay');
+       if (titleEl) titleEl.style.removeProperty('color');
+    }
     col.style.removeProperty('--drag-grid-color');
     col.style.removeProperty('--drag-bg-color');
     removeGhost();
@@ -132,6 +187,9 @@ function onDrop(e, state, renderFn) {
   const targetColId = targetColEl.dataset.colId;
   targetColEl.classList.remove('drag-over');
   removeGhost();
+
+  // Detecta se a coluna estava vazia antes do processamento
+  const wasEmpty = targetColEl.querySelector('.column-empty-state');
 
   if (!dragCardId || !dragColId) return;
 
@@ -197,6 +255,49 @@ function onDrop(e, state, renderFn) {
     }});
   }
   showToast('✅ Tarefa movida para ' + tgtCol.title + '!');
+
+  // Dispara efeito de fumaça se a coluna estava vazia
+  if (wasEmpty) {
+    const prioColors = { high: '#EF4444', medium: '#F59E0B', low: '#10B981' };
+    createSmokeEffect(targetColEl, prioColors[card.priority] || '#fff');
+    playMelody('impact');
+    playMelody('shatter'); // Adiciona o feedback sonoro de estilhaço
+
+    // Vibração personalizada para tarefas urgentes (padrão SOS curto)
+    if (card.priority === 'high' && 'vibrate' in navigator) {
+      navigator.vibrate([100, 50, 100, 50, 300]);
+    }
+  }
+}
+
+/**
+ * Cria um efeito visual de fumaça/partículas
+ * @param {HTMLElement} parent - Elemento pai onde as partículas surgirão
+ * @param {string} color - Cor das partículas
+ */
+function createSmokeEffect(parent, color = '#fff') {
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'smoke-particle';
+    const size = Math.random() * 25 + 10;
+    p.style.width = p.style.height = `${size}px`;
+    
+    // Cálculo de explosão: espalha em direções aleatórias X e Y
+    const vx = (Math.random() - 0.5) * 160; // Spread horizontal
+    const vy = (Math.random() - 0.5) * 160 - 20; // Spread vertical (leve tendência para cima)
+    p.style.setProperty('--vx', `${vx}px`);
+    p.style.setProperty('--vy', `${vy}px`);
+
+    // Posicionamento aleatório dentro do container
+    p.style.color = color; // Define a cor para o rastro (currentColor)
+    p.style.backgroundColor = color;
+    p.style.left = `${Math.random() * 80 + 10}%`;
+    p.style.top = `${Math.random() * 60 + 20}%`;
+    p.style.animationDelay = `${Math.random() * 0.2}s`;
+    
+    parent.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
 }
 
 /**

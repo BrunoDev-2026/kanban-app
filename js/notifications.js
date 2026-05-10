@@ -53,7 +53,7 @@ function playTick(freq = 250, duration = 0.1, vol = 0.04, hasEcho = false, type 
 
 /**
  * Toca uma melodia de acordo com o contexto
- * @param {'start'|'end'|'longBreak'|'alert'|'magnetic'} type - Tipo de melodia
+ * @param {'start'|'end'|'longBreak'|'alert'|'magnetic'|'impact'|'shatter'|'shortCircuit'} type - Tipo de melodia
  * @param {string} priority - Prioridade para ajuste de tom (opcional)
  */
 function playMelody(type = 'start', priority = 'low') {
@@ -73,6 +73,21 @@ function playMelody(type = 'start', priority = 'low') {
     const baseFreq = priority === 'high' ? 240 : (priority === 'medium' ? 185 : 140);
     playTick(baseFreq, 0.3, 0.1, true, 'sine');
     setTimeout(() => playTick(baseFreq * 0.66, 0.3, 0.07, true, 'sine'), 40);
+  } else if (type === 'impact') {
+    // Impacto suave: Grave e abafado para o drop em colunas vazias
+    playTick(150, 0.4, 0.08, true, 'sine');
+  } else if (type === 'shatter') {
+    // Estilhaço de cristal: tons agudos e curtos com variação aleatória (feedback premium)
+    for (let i = 0; i < 5; i++) {
+      const freq = 1800 + Math.random() * 1200;
+      const dur = 0.03 + Math.random() * 0.08;
+      const delay = i * 25;
+      setTimeout(() => playTick(freq, dur, 0.015, true, 'sine'), delay);
+    }
+  } else if (type === 'shortCircuit') {
+    // Curto-circuito: Tons ríspidos e aleatórios (sawtooth) para faíscas
+    const freq = 400 + Math.random() * 800;
+    playTick(freq, 0.06, 0.02, false, 'sawtooth');
   } else {
     playTick(660, 0.2, 0.05, true);
     setTimeout(() => playTick(440, 0.3, 0.04, true), 200);
