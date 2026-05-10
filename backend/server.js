@@ -13,18 +13,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// UTF-8 explícito em todas as respostas JSON
-app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  next();
-});
-
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // --- Servir arquivos estáticos do frontend ---
+const staticPath = path.join(__dirname, '..');
+console.log("Serving static files from:", staticPath);
 // Como server.js está em /backend, subimos um nível para encontrar o index.html
-app.use(express.static(path.join(__dirname, '..'), {
+app.use(express.static(staticPath, {
   maxAge: 0, // Desativado para garantir que deploys sejam vistos imediatamente
   setHeaders: (res, filePath) => {
     // Para arquivos HTML, forçamos o navegador a sempre verificar se há nova versão
@@ -190,6 +186,13 @@ app.delete('/tarefas/:id', async (req, res) => {
     console.error(err);
     res.status(500).json({ erro: err.message });
   }
+});
+
+// Fallback para o frontend (SPA) — DEVE vir após as rotas da API
+app.get("*", (req, res) => {
+  console.log("Serving index.html for path:", req.path);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, "..", "index.html"));
 });
 
 // --- Inicia o servidor escutando em todas as interfaces ---
