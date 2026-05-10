@@ -7,7 +7,7 @@
 .board-container {
   position: relative;
   z-index: 1;
-  padding-top: calc(var(--header-h) + 45px);
+  padding-top: calc(var(--header-h) + 45px + 1cm);
   padding-bottom: 48px;
   padding-left: 24px;
   padding-right: 24px;
@@ -324,6 +324,16 @@ body.theme-light .card {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
+/* ── Estilo Neon para os Cards ── */
+body.theme-neon .card {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.1), var(--shadow-card);
+}
+body.theme-neon .card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.4), var(--shadow-card);
+}
+
 /* ── Cards atrasados ── */
 .card.card-overdue {
   border-left: 3px solid var(--accent2) !important;
@@ -344,9 +354,16 @@ body.theme-light .card {
   width: 3px;
   border-radius: 12px 0 0 12px;
 }
-.card-priority-bar.low    { background: var(--accent3); }
-.card-priority-bar.medium { background: var(--accent-amber); }
-.card-priority-bar.high   { background: var(--accent2); }
+
+/* Prioridades usando cores do sistema para harmonia */
+.card-priority-bar.low    { background: var(--accent3); box-shadow: 2px 0 8px rgba(16, 185, 129, 0.2); }
+.card-priority-bar.medium { background: var(--accent-amber); box-shadow: 2px 0 8px rgba(245, 158, 11, 0.2); }
+.card-priority-bar.high   { background: var(--accent2); box-shadow: 2px 0 8px rgba(239, 68, 68, 0.2); }
+
+/* No modo claro, as barras ficam mais sólidas */
+body.theme-light .card-priority-bar {
+  opacity: 0.8;
+}
 
 /* ── Card Content ── */
 .card-title {

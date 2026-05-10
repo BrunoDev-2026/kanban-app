@@ -13,6 +13,7 @@
   --accent3:        #10B981; /* Verde Sucesso */
   --accent-amber:   #F59E0B; /* Laranja Atenção */
 
+  --dropdown-bg:    rgba(18, 18, 34, 0.96);
   --glass-bg:       rgba(45, 50, 58, 0.85);
   --glass-bg-hover: rgba(55, 60, 70, 0.9);
   --glass-border:   rgba(255, 255, 255, 0.06);
@@ -89,6 +90,7 @@ body.theme-dark {
   --header-border: rgba(80, 120, 255, 0.15);
   --footer-bg:    linear-gradient(to top, rgba(11, 11, 24, 0.9), transparent);
   --title-color:  #ffffff;
+  --dropdown-bg:  rgba(18, 18, 34, 0.98);
 }
 
 /* ☀️ Light Mode */
@@ -101,6 +103,7 @@ body.theme-light {
   --text-muted:     #444444;
   --accent:         #2563eb;
   --accent-light:   #3b82f6;
+  --dropdown-bg:    #ffffff;
   --glass-bg:       rgba(255, 255, 255, 0.9);
   --glass-bg-hover: rgba(0, 0, 0, 0.03);
   --glass-border:   rgba(0, 0, 0, 0.1);
@@ -154,6 +157,43 @@ body::before {
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
+/* ── Botão Adicionar Coluna (Azul) ── */
+#addColumnBtn {
+  background-color: var(--accent) !important;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+#addColumnBtn:hover {
+  background-color: var(--accent-light) !important;
+  transform: translateY(-1px);
+}
+
+/* ── API Spinner & Status ── */
+#api-spinner {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  display: none;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-modal);
+}
+#api-spinner.active { display: flex; animation: slideUp 0.3s var(--ease-pop); }
+.spinner-dot { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.spinner-text { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── Theme Selector ── */
 #themeSelector {
   padding: 4px 8px;
@@ -181,7 +221,6 @@ body::before {
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--header-border);
   gap: 24px;
-  overflow: hidden;
 }
 
 /* ── Efeito de Refração (Glossy Reflection) ── */
@@ -644,28 +683,48 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
 /* ── Dropdown ── */
 .dropdown { position: relative; }
 .dropdown-content {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  background: rgba(18, 18, 34, 0.96);
-  border: 1px solid var(--glass-border);
+  background: var(--dropdown-bg);
+  border: 1px solid var(--glass-border-active);
   border-radius: var(--radius-md);
   padding: 6px;
   min-width: 170px;
-  z-index: 200;
+  z-index: 1000;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: var(--shadow-modal);
-  animation: fadeIn 0.15s var(--ease);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease), visibility 0.2s;
 }
-.dropdown.open .dropdown-content { display: flex; flex-direction: column; gap: 2px; }
+.dropdown.open .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
 .dropdown-item {
   width: 100%;
   justify-content: flex-start;
   border-radius: var(--radius-xs);
   font-size: 13px;
   padding: 8px 12px;
+}
+
+/* ── Neon Glow para Botão de Tarefa no Tema Dark ── */
+body.theme-dark .add-card-btn {
+  border-style: solid;
+  border-width: 1px;
+  animation: neonPulse 2s infinite ease-in-out;
+  background: rgba(37, 99, 235, 0.05);
+}
+body.theme-dark .add-card-btn:hover {
+  box-shadow: 0 0 15px var(--accent);
 }
 
 /* ── Pomodoro Timer ── */
@@ -734,9 +793,11 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
     gap: 8px;
   }
   .header-center {
+    flex: 1 1 100%;
     flex-wrap: wrap;
     justify-content: center;
     padding-left: 0;
+    order: 2; /* Mantém o título abaixo do logo/avatar e acima da busca */
   }
   .search-wrapper {
     width: 100%;
@@ -792,8 +853,9 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   overflow: hidden;
 }
   .board-title {
-    font-size: 14px;
-    max-width: 150px;
+    font-size: 16px;
+    max-width: 90%;
+    width: auto;
   }
   .btn-icon span {
     display: none; /* esconde texto do botão, mostra só ícone */
@@ -935,7 +997,26 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
 
 /* Botão "Adicionar tarefa" com transição */
 .add-card-btn {
-  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  width: calc(100% - 24px);
+  margin: 0 12px 12px 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-card-btn:hover {
+  background: var(--accent);
+  color: #ffffff;
 }
 
 .add-card-btn:active {

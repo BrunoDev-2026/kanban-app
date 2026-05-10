@@ -279,7 +279,6 @@ function apiUrlForId(id) {
  * Processa a resposta da API de forma centralizada.
  */
 async function handleApiResponse(res) {
-  setLoading(false);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.erro || `Erro: ${res.status}`);
@@ -287,30 +286,50 @@ async function handleApiResponse(res) {
   return res.json();
 }
 
-async function apiGetTarefas() {
-  setLoading(true);
-  const res = await fetch(API_URL);
-  return handleApiResponse(res);
+async function apiGetTarefas(retries = 5, delay = 4000) {
+  setLoading(true, 'Conectando ao servidor...');
+  try {
+    const res = await fetch(API_URL);
+    const data = await handleApiResponse(res);
+    setLoading(false);
+    return data;
+  } catch (err) {
+    if (retries > 0) {
+      setLoading(true, `Servidor acordando... (${retries} tentativas restantes)`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return apiGetTarefas(retries - 1, delay);
+    }
+    setLoading(false);
+    throw err;
+  }
 }
 
-async function apiCreateTarefa({ titulo, coluna }) {
+async function apiCreateTarefa(payload) {
   setLoading(true);
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titulo, coluna })
-  });
-  return handleApiResponse(res);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return await handleApiResponse(res);
+  } finally {
+    setLoading(false);
+  }
 }
 
-async function apiUpdateTarefa({ id, titulo, coluna }) {
+async function apiUpdateTarefa({ id, ...payload }) {
   setLoading(true);
-  const res = await fetch(apiUrlForId(id), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titulo, coluna })
-  });
-  return handleApiResponse(res);
+  try {
+    const res = await fetch(apiUrlForId(id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return await handleApiResponse(res);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function apiDeleteTarefa(id) {
@@ -324,15 +343,18 @@ async function apiDeleteTarefa(id) {
 /**
  * Controla o estado visual de carregamento
  */
-function setLoading(isLoading) {
+function setLoading(isLoading, message = 'Carregando...') {
   let spinner = document.getElementById('api-spinner');
   if (!spinner) {
     spinner = document.createElement('div');
     spinner.id = 'api-spinner';
-    spinner.innerHTML = '<div class="spinner-dot"></div>';
+    spinner.innerHTML = '<div class="spinner-dot"></div><span class="spinner-text"></span>';
     document.body.appendChild(spinner);
   }
   
+  const textEl = spinner.querySelector('.spinner-text');
+  if (textEl) textEl.textContent = message;
+
   if (isLoading) {
     spinner.classList.add('active');
   } else {
@@ -462,17 +484,17 @@ async function initBoardFromAPI() {
 
       col.cards.push({
         id,
-        title: tarefa.titulo,
-        desc: tarefa.descricao || '',
-        priority: tarefa.prioridade || 'low',
-        date: tarefa.data || '',
+        title: tarefa.titulo || '',
+        desc: tarefa.desc || '',
+        priority: tarefa.priority || 'low',
+        date: tarefa.date || '',
         tags: tarefa.tags || [],
         checklist: tarefa.checklist || [],
         totalFocusTime: tarefa.totalFocusTime || 0
       });
     });
 
-    saveState();
+    saveLocalState();
     render();
   } catch (e) {
     console.warn('API init failed, falling back to localStorage state:', e);
@@ -1313,9 +1335,9 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         id: editingCardId,
         titulo: title,
         coluna: movedColumnBackend,
-        descricao: desc,
-        data: date,
-        prioridade: selectedPriority,
+        desc: desc,
+        date: date,
+        priority: selectedPriority,
         tags: tags,
         checklist: tempChecklist
       });
@@ -1340,9 +1362,9 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
       const created = await apiCreateTarefa({
         titulo: title,
         coluna: movedColumnBackend,
-        descricao: desc,
-        data: date,
-        prioridade: selectedPriority,
+        desc: desc,
+        date: date,
+        priority: selectedPriority,
         tags: tags,
         checklist: tempChecklist
       });
