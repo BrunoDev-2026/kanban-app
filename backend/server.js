@@ -1,37 +1,22 @@
 require('dotenv').config();
 const express = require('express');
+const compression = require('compression');
 const cors    = require('cors');
 const path    = require('path');
 const admin   = require('firebase-admin');
 
 const app  = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
+app.use(compression());
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+    "https://kanban-app-p91q.onrender.com",
+    "https://kanban-api-oozq.onrender.com"
+  ]
 }));
-
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
-
-// --- Servir arquivos estáticos do frontend ---
-const staticPath = path.join(__dirname, '..');
-console.log("Serving static files from:", staticPath);
-// Como server.js está em /backend, subimos um nível para encontrar o index.html
-app.use(express.static(staticPath, {
-  maxAge: 0, // Desativado para garantir que deploys sejam vistos imediatamente
-  setHeaders: (res, filePath) => {
-    // Para arquivos HTML, forçamos o navegador a sempre verificar se há nova versão
-    if (path.extname(filePath) === '.html') {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    } else {
-      // Garante que o cabeçalho de cache público seja respeitado para outros ativos
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    }
-  }
-}));
 
 // Carrega as credenciais: primeiro da variável de ambiente (Fly.io), depois do arquivo local (desenvolvimento)
 let serviceAccount;
@@ -39,7 +24,6 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     // Remove BOM (Byte Order Mark) que o PowerShell/Windows pode adicionar
     const raw = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON.replace(/^\uFEFF/, '').trim();
     serviceAccount = JSON.parse(raw);
-    console.log('✅ Credenciais carregadas da variável de ambiente.');
 } else {
     // Fallback para desenvolvimento local com arquivo
     try {
@@ -58,17 +42,10 @@ admin.initializeApp({
 const db = admin.firestore();
 console.log('🔥 Firebase Admin inicializado com sucesso.');
 
-// --- Suas rotas da API (mantenha como estão) ---
-app.get('/', (req, res) => {
-  res.json({ 
-    mensagem: "Kanban API está rodando!", 
-    endpoints: ["/tarefas", "/health"] 
-  });
-});
-
+// ===== API ROUTES =====
 app.get('/tarefas', async (req, res) => {
   try {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const snapshot = await db.collection('tarefas').get();
     const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.status(200).json(tarefas);
@@ -91,34 +68,23 @@ app.post('/tarefas', async (req, res) => {
     } = req.body;
 
     const docRef = await db.collection('tarefas').add({
-      titulo,
-      coluna,
-      desc: desc || '',
-      date: date || '',
-      tags: Array.isArray(tags) ? tags : [],
-      priority: priority || 'low',
+      titulo, coluna,
+      desc: desc || '', date: date || '',
+      tags: Array.isArray(tags) ? tags : [], priority: priority || 'low',
       checklist: Array.isArray(checklist) ? checklist : [],
       createdAt: new Date()
     });
 
     res.status(201).json({
-      id: docRef.id,
-      titulo,
-      coluna,
-      desc: desc || '',
-      date: date || '',
-      tags: Array.isArray(tags) ? tags : [],
-      priority: priority || 'low',
+      id: docRef.id, titulo, coluna,
+      desc: desc || '', date: date || '',
+      tags: Array.isArray(tags) ? tags : [], priority: priority || 'low',
       checklist: Array.isArray(checklist) ? checklist : [],
       createdAt: new Date().toISOString()
     });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // PUT /tarefas/:id – atualizar uma tarefa existente
@@ -152,15 +118,10 @@ app.put('/tarefas/:id', async (req, res) => {
       checklist: Array.isArray(checklist) ? checklist : []
     });
 
-    res.json({
-      id,
-      titulo,
-      coluna,
-      desc: desc || '',
-      date: date || '',
-      tags: Array.isArray(tags) ? tags : [],
-      priority: priority || 'low',
-      checklist: Array.isArray(checklist) ? checklist : []
+    res.json({ 
+      id, titulo, coluna, desc: desc || '', date: date || '',
+      tags: Array.isArray(tags) ? tags : [], priority: priority || 'low',
+      checklist: Array.isArray(checklist) ? checklist : [] 
     });
   } catch (err) {
     console.error(err);
@@ -179,7 +140,7 @@ app.delete('/tarefas/:id', async (req, res) => {
     if (!doc.exists) {
       return res.status(404).json({ erro: 'Tarefa não encontrada' });
     }
-
+    res.setHeader('Cache-Control', 'no-store');
     await tarefaRef.delete();
     res.json({ mensagem: 'Tarefa removida com sucesso' });
   } catch (err) {
@@ -188,7 +149,11 @@ app.delete('/tarefas/:id', async (req, res) => {
   }
 });
 
-// Fallback para o frontend (SPA) — DEVE vir após as rotas da API
+// ===== FRONTEND STATIC FILES =====
+// Serve arquivos estáticos (index.html, js/, css/)
+app.use(express.static(path.join(__dirname, '..')));
+
+// Fallback para SPA (Single Page Application)
 app.get("*", (req, res) => {
   console.log("Serving index.html for path:", req.path);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -63,8 +63,8 @@ async function saveCard(state, renderFn) {
 
   try {
     if (editingCardId) {
-      // Atualizar tarefa existente (PUT)
-      await window.API.updateTarefa(editingCardId, {
+      // Enfileira atualização no sistema de Sync para persistência garantida
+      const payload = {
         titulo: title,
         coluna: col.title,
         desc,
@@ -72,7 +72,10 @@ async function saveCard(state, renderFn) {
         tags,
         priority: selectedPriority,
         checklist: tempChecklist
-      });
+      };
+      
+      window.Sync.enqueue({ method: 'PUT', id: editingCardId, payload });
+
       // Atualiza estado local
       const card = col.cards.find(k => k.id === editingCardId);
 
@@ -128,14 +131,13 @@ async function archiveCard(colId, cardId, state, renderFn, stopPomodoroFn) {
   const [card] = col.cards.splice(idx, 1);
 
   try {
-    await window.API.deleteTarefa(cardId);
+    window.Sync.enqueue({ method: 'DELETE', id: cardId });
     card.archivedAt = new Date().toISOString();
     state.archived.push(card);
     renderFn();
     showToast('📦 Tarefa arquivada!');
     if (stopPomodoroFn) stopPomodoroFn(cardId);
   } catch (err) {
-    console.error(err);
     // Reverte remoção local
     col.cards.splice(idx, 0, card);
     showToast('❌ Erro ao arquivar tarefa');

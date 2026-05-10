@@ -9,6 +9,11 @@ const LOG_KEY    = 'kanflow_sync_logs';
 let syncTimer    = null;
 let isSyncing    = false;
 
+// Configurações para Exponential Backoff
+let retryAttempt = 0;
+const BASE_DELAY = 2000; // 2 segundos
+const MAX_DELAY  = 300000; // 5 minutos (máximo)
+
 function getOutbox() {
   try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); }
   catch { return []; }
@@ -56,7 +61,8 @@ function enqueue(op) {
 
   filtered.push({ ...op, ts: Date.now() });
   setOutbox(filtered);
-  scheduleSync();
+  retryAttempt = 0; // Reseta tentativas ao adicionar nova operação manual
+  scheduleSync(BASE_DELAY);
 }
 
 function scheduleSync(delay) {
@@ -112,9 +118,15 @@ async function processOutbox() {
   isSyncing = false;
 
   if (remaining.length > 0) {
+    // Calcula o próximo atraso: BASE_DELAY * 2 ^ retryAttempt
+    retryAttempt++;
+    const nextDelay = Math.min(BASE_DELAY * Math.pow(2, retryAttempt), MAX_DELAY);
+    
     updateSyncIndicator('pending', remaining.length);
-    scheduleSync(15000);
+    console.log(`Log: Falha na sincronização. Tentando novamente em ${nextDelay/1000}s (Tentativa ${retryAttempt})`);
+    scheduleSync(nextDelay);
   } else {
+    retryAttempt = 0;
     updateSyncIndicator('synced');
     // Recarrega da API após sync bem-sucedido para garantir consistência
     if (window._reloadAfterSync) {

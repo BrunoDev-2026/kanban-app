@@ -10,15 +10,18 @@ const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
 
 // Caminho do seu index.html
 const indexPath = path.join(__dirname, 'index.html');
+const swPath = path.join(__dirname, 'sw.js');
 
-// Lê o arquivo e substitui todas as ocorrências do placeholder
-if (fs.existsSync(indexPath)) {
-    let html = fs.readFileSync(indexPath, 'utf8');
-    if (html.includes(PLACEHOLDER)) {
-        html = html.split(PLACEHOLDER).join(timestamp);
-        fs.writeFileSync(indexPath, html, 'utf8');
-        console.log(`✅ Versão atualizada para: ${timestamp}`);
-    } else {
-        console.warn(`⚠️ Placeholder ${PLACEHOLDER} não encontrado no index.html`);
+function updateFile(filePath) {
+    if (fs.existsSync(filePath)) {
+        let content = fs.readFileSync(filePath, 'utf8');
+        if (content.includes(PLACEHOLDER)) {
+            content = content.split(PLACEHOLDER).join(timestamp);
+            fs.writeFileSync(filePath, content, 'utf8');
+            console.log(`✅ Versão atualizada em ${path.basename(filePath)} para: ${timestamp}`);
+        }
     }
 }
+
+updateFile(indexPath);
+updateFile(swPath);

@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "deploy": "node ../update-version.js && git add .. && git commit -m \"chore: update version and assets for deploy\" && git push origin main"
   },
   "dependencies": {
     "compression": "^1.7.4",

@@ -268,7 +268,7 @@ function saveLocalState() {
 /* ════════════════════════════════════════════
    ESTADO GLOBAL
 ════════════════════════════════════════════ */
-const API_URL = "https://backend-thrumming-shape-9932.fly.dev/tarefas";
+const API_URL = "https://kanban-api-oozq.onrender.com/tarefas";
 const API_KEY = "minha-chave-secreta-2026";
 
 // =========================

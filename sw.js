@@ -3,38 +3,46 @@
  * Service Worker — Network First para API, Cache First para assets
  */
 
-const CACHE_NAME = 'flowboard-v3';
+const CACHE_NAME = 'flowboard-{{VERSION}}';
 const ASSETS = [
-  './',
-  './index.html',
-  './css/main.css',
-  './css/animations.css',
-  './css/board.css',
-  './css/components.css',
-  './css/dashboard.css',
-  './css/responsive.css',
-  './js/api.js',
-  './js/app.js',
-  './js/avatar.js',
-  './js/dashboard.js',
-  './js/dragdrop.js',
-  './js/filters.js',
-  './js/metrics-logic.js',
-  './js/notifications.js',
-  './js/shortcuts.js',
-  './js/storage.js',
-  './js/tags.js',
-  './js/tasks.js',
-  './js/utils.js',
-  './manifest.json',
-  './assets/logo/logo.png'
+  '/',
+  '/index.html',
+  '/css/main.css',
+  '/css/animations.css',
+  '/css/board.css',
+  '/css/components.css',
+  '/css/dashboard.css',
+  '/css/responsive.css',
+  '/js/api.js',
+  '/js/app.js',
+  '/js/avatar.js',
+  '/js/dashboard.js',
+  '/js/dragdrop.js',
+  '/js/filters.js',
+  '/js/metrics-logic.js',
+  '/js/notifications.js',
+  '/js/shortcuts.js',
+  '/js/storage.js',
+  '/js/tags.js',
+  '/js/tasks.js',
+  '/js/utils.js',
+  '/manifest.json',
+  '/assets/logo/logo.png'
 ];
 
 // Instalação: pré-cacheia assets essenciais
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
+      .then(cache => {
+        return Promise.all(
+          ASSETS.map(url => {
+            return cache.add(url).catch(err => {
+              console.error(`[SW] Falha ao cachear asset: ${url}`, err);
+            });
+          })
+        );
+      })
       .then(() => self.skipWaiting())
   );
 });
@@ -59,7 +67,7 @@ self.addEventListener('fetch', event => {
   if (url.protocol === 'chrome-extension:') return;
 
   // API — Network First com fallback offline
-  if (url.hostname.includes('onrender.com') || url.pathname.includes('/tarefas')) {
+  if (url.hostname === 'kanban-api-oozq.onrender.com' || url.pathname.startsWith('/tarefas')) {
     event.respondWith(
       fetch(event.request)
         .then(res => res)
