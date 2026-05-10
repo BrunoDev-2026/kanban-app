@@ -53,9 +53,10 @@ function playTick(freq = 250, duration = 0.1, vol = 0.04, hasEcho = false, type 
 
 /**
  * Toca uma melodia de acordo com o contexto
- * @param {'start'|'end'|'longBreak'} type - Tipo de melodia
+ * @param {'start'|'end'|'longBreak'|'alert'|'magnetic'} type - Tipo de melodia
+ * @param {string} priority - Prioridade para ajuste de tom (opcional)
  */
-function playMelody(type = 'start') {
+function playMelody(type = 'start', priority = 'low') {
   if (type === 'start') {
     playTick(440, 0.1, 0.05);
     setTimeout(() => playTick(880, 0.1, 0.04), 100);
@@ -67,6 +68,11 @@ function playMelody(type = 'start') {
     // Som de alerta (Buzzer): Grave e ríspido para indicar bloqueio
     playTick(120, 0.25, 0.1, false, 'sawtooth');
     setTimeout(() => playTick(100, 0.3, 0.08, false, 'sawtooth'), 200);
+  } else if (type === 'magnetic') {
+    // Pulso magnético: Tom dinâmico baseado na prioridade
+    const baseFreq = priority === 'high' ? 240 : (priority === 'medium' ? 185 : 140);
+    playTick(baseFreq, 0.3, 0.1, true, 'sine');
+    setTimeout(() => playTick(baseFreq * 0.66, 0.3, 0.07, true, 'sine'), 40);
   } else {
     playTick(660, 0.2, 0.05, true);
     setTimeout(() => playTick(440, 0.3, 0.04, true), 200);

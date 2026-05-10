@@ -9,6 +9,7 @@
 /* ── Estado do Drag & Drop ── */
 let dragCardId = null;
 let dragColId  = null;
+let dragCardPriority = null;
 let ghostEl    = null;
 
 /**
@@ -19,6 +20,11 @@ function onDragStart(e) {
   dragCardId = e.currentTarget.dataset.cardId;
   const colEl = e.currentTarget.closest('.column');
   dragColId = colEl?.dataset.colId || null;
+
+  // Captura a prioridade do card através da classe da barra de prioridade
+  const priorityBar = e.currentTarget.querySelector('.card-priority-bar');
+  dragCardPriority = priorityBar ? 
+    Array.from(priorityBar.classList).find(c => ['low', 'medium', 'high'].includes(c)) : 'low';
 
   // Adiciona classes para animação via CSS
   requestAnimationFrame(() => {
@@ -44,7 +50,12 @@ function onDragEnd(e) {
   
   // Limpa estados visuais de todas as colunas
   removeGhost();
-  document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+  document.querySelectorAll('.column').forEach(c => {
+    c.classList.remove('drag-over');
+    c.style.removeProperty('--drag-grid-color');
+    c.style.removeProperty('--drag-bg-color');
+  });
+  dragCardPriority = null;
 }
 
 /**
@@ -58,6 +69,19 @@ function onDragOver(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.classList.contains('drag-over')) {
     col.classList.add('drag-over');
+    
+    // Mapeamento de cores baseado na prioridade do card sendo arrastado
+    const colors = {
+      high:   { grid: 'rgba(239, 68, 68, 0.25)', bg: 'rgba(50, 20, 20, 0.6)' },
+      medium: { grid: 'rgba(245, 158, 11, 0.25)', bg: 'rgba(50, 40, 20, 0.6)' },
+      low:    { grid: 'rgba(16, 185, 129, 0.25)', bg: 'rgba(20, 50, 30, 0.6)' }
+    };
+
+    const selected = colors[dragCardPriority || 'low'];
+    col.style.setProperty('--drag-grid-color', selected.grid);
+    col.style.setProperty('--drag-bg-color', selected.bg);
+
+    if (col.querySelector('.column-empty-state')) playMelody('magnetic', dragCardPriority);
   }
 
   const afterEl = getDragAfterElement(e.currentTarget, e.clientY);
@@ -88,6 +112,8 @@ function onDragLeave(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.contains(e.relatedTarget)) {
     col.classList.remove('drag-over');
+    col.style.removeProperty('--drag-grid-color');
+    col.style.removeProperty('--drag-bg-color');
     removeGhost();
   }
 }

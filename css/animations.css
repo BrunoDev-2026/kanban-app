@@ -184,3 +184,15 @@
   width: 100%;
   margin-bottom: 8px;
 }
+
+/* ── Glow pulsante para WIP Limit ── */
+@keyframes wipLimitGlow {
+  0%, 100% { border-color: var(--accent2); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2), var(--shadow-col); }
+  50% { border-color: #ff8e9b; box-shadow: 0 0 25px rgba(239, 68, 68, 0.5), var(--shadow-col); }
+}
+
+/* ── Pulse Neon para botões de CTA ── */
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(108, 99, 255, 0.3), inset 0 0 2px rgba(108, 99, 255, 0.1); border-color: rgba(108, 99, 255, 0.4); }
+  50% { box-shadow: 0 0 15px rgba(108, 99, 255, 0.6), inset 0 0 5px rgba(108, 99, 255, 0.3); border-color: var(--accent); }
+}

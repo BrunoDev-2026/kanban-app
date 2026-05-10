@@ -433,9 +433,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));render();
   });
 
-  document.getElementById('boardEmojiText')?.addEventListener('click',openEmojiModal);
-  document.getElementById('closeEmojiModal')?.addEventListener('click',()=>closeModal('emojiModal'));
-  document.getElementById('clearEmojiBtn')?.addEventListener('click',()=>{state.emoji='';saveMetadata();render();showToast('Emoji removido!');closeModal('emojiModal');});
   document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
   document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
   document.getElementById('toggleViewBtn')?.addEventListener('click',()=>{currentView=currentView==='board'?'list':'board';render();showToast(currentView==='list'?'📋 Lista':'📊 Quadro');});
@@ -452,6 +449,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('click',()=>document.getElementById('moreDropdown')?.classList.remove('open'));
   document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
   document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
+
+  // Parallax sutil para a grade das colunas vazias
+  document.getElementById('board')?.addEventListener('mousemove', e => {
+    const col = e.target.closest('.column');
+    if (col && col.querySelector('.column-empty-state')) {
+      const rect = col.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left);
+      const mouseY = (e.clientY - rect.top);
+      const x = mouseX / 15;
+      const y = mouseY / 15;
+      col.style.setProperty('--mouse-x', `${mouseX}px`);
+      col.style.setProperty('--mouse-y', `${mouseY}px`);
+      col.style.setProperty('--grid-x', `${x}px`);
+      col.style.setProperty('--grid-y', `${y}px`);
+    }
+  });
 
   window.addEventListener('online',()=>{
     const ind=document.getElementById('offlineIndicator');
