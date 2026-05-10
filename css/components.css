@@ -250,6 +250,12 @@
   margin-top: 22px;
 }
 
+/* Destaque visual quando a API está fora do ar (Amber) vs Offline (Vermelho) */
+.offline-badge.api-down {
+  color: var(--accent-amber) !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+}
+
 /* ── Confirm Modal ── */
 .confirm-modal {
   max-width: 360px;

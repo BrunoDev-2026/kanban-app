@@ -85,6 +85,8 @@ function saveMetadata() {
 
 /* ════════ INIT APP — FONTE DA VERDADE E A API ════════ */
 async function initApp() {
+  localStorage.removeItem('oldPendingDeletes');
+
   // 1. Carrega metadados locais
   let local = {};
   try { local = JSON.parse(localStorage.getItem('kanflow_state') || '{}'); } catch(e) {}
@@ -101,6 +103,8 @@ async function initApp() {
   try {
     console.log("🔍 Iniciando busca de tarefas...");
     const tarefas = await window.API.fetchTarefas();
+    const ind = document.getElementById('offlineIndicator');
+    if(ind) ind.style.display = 'none';
     state.columns = buildColumnsFromAPI(tarefas, local.columns);
     saveMetadata();
     console.log('✅ API:', tarefas.length, 'tarefas carregadas');
@@ -288,7 +292,7 @@ function buildColumn(col,isDone,hasPrev,hasNext){
   el.className='column'+(exceeded?' limit-exceeded':'');
   el.dataset.colId=col.id;
   el.setAttribute('role','listitem');
-  const emptyHTML=col.cards.length===0?'<div class="column-empty-state"><span class="empty-icon">📁</span><p>Nenhuma tarefa criada ainda</p><button class="btn-empty-create" data-col="'+col.id+'">+ Criar primeira tarefa</button></div>':'';
+  const emptyHTML=col.cards.length===0?'<div class="column-empty-state"><button class="btn-empty-create" data-col="'+col.id+'">+ Criar primeira tarefa</button></div>':'';
   el.innerHTML=
     '<div class="column-header" data-col-id="'+col.id+'">'+
     '<div class="column-drag-handle" draggable="true" title="Arrastar coluna"><i data-lucide="grip-vertical" size="16"></i></div>'+
@@ -438,6 +442,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('openArchiveBtn')?.addEventListener('click',openArchiveModal);
   document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
   document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});
+  document.getElementById('emergencyResetBtn')?.addEventListener('click', () => { if (typeof emergencyReset === 'function') emergencyReset(); });
   document.getElementById('clearBoardBtn')?.addEventListener('click',()=>openConfirm('Limpar todo o quadro?',()=>{state.columns=[];saveMetadata();render();showToast('🧹 Quadro limpo!');} ));
   document.getElementById('exportBoardBtn')?.addEventListener('click',()=>{
     try{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mb-flowboard-'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('💾 Exportado!');}catch{showToast('❌ Erro ao exportar.');}
@@ -448,7 +453,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
   document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
 
-  window.addEventListener('online',()=>{showToast('🌐 Conexao restaurada!');window.Sync.processOutbox().then(()=>{window.API.fetchTarefas().then(t=>{state.columns=buildColumnsFromAPI(t,state.columns);saveMetadata();render();});});});
+  window.addEventListener('online',()=>{
+    const ind=document.getElementById('offlineIndicator');
+    if(ind)ind.style.display='none';
+    showToast('🌐 Conexao restaurada!');
+    window.Sync.processOutbox().then(()=>{window.API.fetchTarefas().then(t=>{state.columns=buildColumnsFromAPI(t,state.columns);saveMetadata();render();});});
+  });
   window.addEventListener('offline',()=>{const ind=document.getElementById('offlineIndicator');if(ind)ind.style.display='flex';showToast('📴 Sem conexao.');});
 
   // Delegacao de eventos do board

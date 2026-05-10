@@ -209,3 +209,29 @@ function clearAllData() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(STORAGE_THEME_KEY);
 }
+
+/**
+ * Reseta todo o armazenamento local e caches do Service Worker (Emergência)
+ */
+async function emergencyReset() {
+  if (!confirm('🚨 AÇÃO CRÍTICA!\n\nIsso apagará todas as configurações locais, histórico e desinstalará a versão offline. Os dados sincronizados no servidor serão mantidos.\n\nDeseja continuar?')) {
+    return;
+  }
+
+  // 1. Limpa todo o localStorage (configurações, outbox, logs)
+  localStorage.clear();
+
+  // 2. Limpa Caches do Service Worker
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+  }
+
+  // 3. Remove o registro do Service Worker
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(reg => reg.unregister()));
+  }
+
+  window.location.reload();
+}

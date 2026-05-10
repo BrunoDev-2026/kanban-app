@@ -270,8 +270,9 @@ function applyCrop() {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
-  canvas.width = 400;
-  canvas.height = 400;
+  // Reduzido para 200x200 para economizar localStorage
+  canvas.width = 200;
+  canvas.height = 200;
 
   const ratio = cropImg.naturalWidth / (cropState.originalWidth * cropState.scale);
   const sx = Math.abs(cropState.x) * ratio;
@@ -279,10 +280,10 @@ function applyCrop() {
   const sSize = cropState.viewportSize * ratio;
 
   // Desenha no canvas com o recorte e redimensionamento
-  ctx.drawImage(cropImg, sx, sy, sSize, sSize, 0, 0, 400, 400);
+  ctx.drawImage(cropImg, sx, sy, sSize, sSize, 0, 0, 200, 200);
 
-  // Converte para Base64 (JPEG com qualidade 0.9)
-  const photoData = canvas.toDataURL('image/jpeg', 0.9);
+  // Qualidade reduzida para 0.7 para compressão eficiente
+  const photoData = canvas.toDataURL('image/jpeg', 0.7);
   
   if (cropState.appState) {
     cropState.appState.profile.photo = photoData;

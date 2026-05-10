@@ -9,6 +9,13 @@ const app  = express();
 const port = process.env.PORT || 4000;
 
 app.use(compression());
+
+// Log de Origem CORS antes do middleware
+app.use((req, res, next) => {
+  console.log(`🔍 Chamada de API | Origem: ${req.headers.origin || 'Local/Desconhecido'} | Path: ${req.path}`);
+  next();
+});
+
 app.use(cors({
   origin: [
     "https://kanban-app-p91q.onrender.com",

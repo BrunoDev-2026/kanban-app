@@ -378,6 +378,31 @@ body::before {
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.18);
 }
 
+/* ── Botão de Operações Pendentes ── */
+#pendingOperationsCountBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-amber);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-xl);
+  transition: all 0.2s ease;
+}
+#pendingOperationsCountBtn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--accent-amber);
+  transform: translateY(-1px);
+}
+#pendingOperationsCountBtn .lucide {
+  color: var(--accent-amber);
+  width: 14px;
+  height: 14px;
+}
+
 /* ── Stats Header ── */
 .header-stats {
   display: flex;

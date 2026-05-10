@@ -4,7 +4,7 @@
 // Mantém compatibilidade com o index.html carregando scripts sem modules.
 
 (function () {
-  const API_BASE_URL = 'https://kanban-api-oozq.onrender.com';
+  const API_BASE_URL = "https://kanban-api-oozq.onrender.com";
 
   function getErrorMessage(err) {
     if (!err) return 'Erro na requisição.';
@@ -25,7 +25,9 @@
         // ignore
       }
       const msg = payload?.erro || payload?.message || `Erro HTTP ${response.status}`;
-      throw new Error(msg);
+      const error = new Error(msg);
+      error.status = response.status; // Anexa o status numérico ao erro
+      throw error;
     }
 
     // Pode retornar vazio em DELETE

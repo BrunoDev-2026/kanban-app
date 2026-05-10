@@ -58,6 +58,9 @@
         <i data-lucide="wifi-off"></i>
       </div>
       <span id="syncIndicator" style="display:none;font-size:11px;margin-left:8px;"></span>
+      <button id="pendingOperationsCountBtn" class="btn-icon btn-ghost" style="display:none; margin-left: 8px;" title="Ver operações pendentes na fila">
+        <i data-lucide="list-checks"></i> <span id="pendingOperationsCount">0</span>
+      </button>
 
       <!-- Contador de concluídas -->
       <div class="header-stats" title="Tarefas concluídas">
@@ -117,6 +120,7 @@
             <button class="btn-icon btn-ghost dropdown-item" id="exportBoardBtn"><i data-lucide="download"></i> Exportar</button>
             <button class="btn-icon btn-ghost dropdown-item" id="printBoardBtn"><i data-lucide="printer"></i> Imprimir</button>
             <button class="btn-icon btn-ghost dropdown-item btn-danger-hover" id="clearBoardBtn"><i data-lucide="trash-2"></i> Limpar Tudo</button>
+            <button class="btn-icon btn-ghost dropdown-item btn-danger-hover" id="emergencyResetBtn"><i data-lucide="alert-triangle"></i> Reset Emergência</button>
           </div>
         </div>
       </div>
@@ -371,7 +375,7 @@
   </footer>
 
   <!-- ===== TOAST ===== -->
-  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="toast" id="toast" role="status" onclick="this.classList.remove('show')" title="Clique para fechar"></div>
 
   <!-- ===== JAVASCRIPT MODULAR (ordem importa) ===== -->
   <script src="/js/api.js?v={{VERSION}}"></script>

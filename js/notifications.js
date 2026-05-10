@@ -88,6 +88,14 @@ function showToast(msg, duration = 2400) {
 }
 
 /**
+ * Remove o Toast imediatamente
+ */
+function clearToast() {
+  const t = document.getElementById('toast');
+  if (t) t.classList.remove('show');
+}
+
+/**
  * Exibe o HUD de atalho de teclado (feedback visual)
  * @param {string} msg - Descrição do atalho acionado
  */
