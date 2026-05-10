@@ -10,7 +10,6 @@
  * Estrutura de dados:
  * state = {
  *   title: string,
- *   emoji: string,
  *   columns: [
  *     { id, title, color, cards: [ { id, title, desc, priority, date } ] }
  *   ]
@@ -151,7 +150,7 @@ function playMelody(type = 'start') {
 
 /** Gera uma cor determinística baseada no texto da tag */
 function getTagColor(text) {
-  const colors = ['#6C63FF', '#FF6584', '#43D9AD', '#FFB347', '#4FC3F7', '#BA68C8', '#F06292'];
+  const colors = ['#2563EB', '#3B82F6', '#43D9AD', '#FFB347', '#4FC3F7', '#60A5FA', '#0ea5e9'];
   let hash = 0;
   const normalized = text.trim().toLowerCase();
   for (let i = 0; i < normalized.length; i++) hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
@@ -164,13 +163,12 @@ function getTagColor(text) {
 function buildDefaultState() {
   return {
     title: 'Meu Quadro',
-    emoji: '🚀',
-    profile: { name: 'Usuário', color: '#6C63FF' },
+    profile: { name: 'Usuário', color: '#2563EB' },
     columns: [
       {
         id: uid(),
         title: 'A Fazer',
-        color: '#6C63FF',
+        color: '#2563EB',
         limit: 0,
         cards: [
           { id: uid(), title: 'Criar wireframe do projeto', desc: 'Esboçar as telas principais antes de começar o código.', priority: 'high',   date: '', tags: ['Design', 'UI'] },
@@ -215,7 +213,6 @@ function loadState() {
     const raw = localStorage.getItem('kanflow_state');
     if (!raw) return buildDefaultState();
     const parsed = JSON.parse(raw);
-    // Validação mínima da estrutura
     if (!parsed || !Array.isArray(parsed.columns)) return buildDefaultState();
     // Garante campos obrigatórios nos cards
     parsed.columns = parsed.columns.map(col => ({
@@ -251,7 +248,6 @@ function saveLocalState() {
   try {
     const localState = {
       title: state.title,
-      emoji: state.emoji,
       profile: state.profile,
       archived: state.archived,
       history: state.history,
@@ -447,7 +443,7 @@ async function initBoardFromAPI() {
     const tarefas = await apiGetTarefas(); // Já usa apiGetTarefas
     if (!Array.isArray(tarefas)) return;
 
-    // limpa cards, mas mantém colunas/profile/emoji/tema do localStorage
+    // limpa cards, mas mantém colunas/profile/tema do localStorage
     state.columns.forEach(col => { col.cards = []; });
     state.archived = [];
 
@@ -529,10 +525,6 @@ function render() {
 
   // Aplica classe de visualização
   board.className = currentView === 'list' ? 'board view-list' : 'board';
-
-  // Atualiza header
-  const emojiText = document.getElementById('boardEmojiText');
-  if (emojiText) emojiText.textContent = state.emoji || '🚀';
 
   const titleDisplay = document.getElementById('boardTitleDisplay');
   if (titleDisplay) titleDisplay.textContent = state.title || 'Meu Quadro';
@@ -1380,48 +1372,6 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
 
 document.getElementById('cardTitleInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('saveCardBtn').click();
-});
-
-/* ════════════════════════════════════════════
-   MODAL: EMOJI PICKER
-════════════════════════════════════════════ */
-const emojiModal = document.getElementById('emojiModal');
-const emojiGrid  = document.getElementById('emojiGrid');
-
-function openEmojiModal() {
-  emojiGrid.innerHTML = '';
-  EMOJI_LIST.forEach(emoji => {
-    const btn = document.createElement('button');
-    btn.className = 'emoji-item';
-    btn.textContent = emoji;
-    btn.setAttribute('aria-label', `Emoji ${emoji}`);
-    btn.addEventListener('click', () => selectEmoji(emoji));
-    emojiGrid.appendChild(btn);
-  });
-  openModal('emojiModal');
-}
-
-function closeEmojiModal() {
-  closeModal('emojiModal');
-}
-
-function selectEmoji(emoji) {
-  state.emoji = emoji;
-  saveLocalState(); // Save local emoji state
-  render();
-  showToast(`Emoji atualizado para ${emoji}! ✨`);
-  closeEmojiModal();
-}
-
-document.getElementById('boardEmojiText').addEventListener('click', openEmojiModal);
-document.getElementById('closeEmojiModal').addEventListener('click', closeEmojiModal);
-
-document.getElementById('clearEmojiBtn').addEventListener('click', () => {
-  state.emoji = '🚀';
-  saveLocalState(); // Save local emoji state
-  render();
-  showToast('Emoji redefinido! 🚀');
-  closeEmojiModal();
 });
 
 /* ════════════════════════════════════════════

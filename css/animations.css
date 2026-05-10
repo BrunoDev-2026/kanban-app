@@ -110,17 +110,6 @@
   to   { transform: rotate(360deg); }
 }
 
-@keyframes logoPulse {
-  0%, 100% { 
-    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)) brightness(calc(1 + (var(--refraction-power, 0) * 0.2))); 
-    transform: scale(var(--refraction-scale, 1)) rotate(var(--refraction-rotate, 0deg)); 
-  }
-  50% { 
-    filter: drop-shadow(0 0 22px rgba(59, 130, 246, 0.8)) brightness(calc(1.1 + (var(--refraction-power, 0) * 0.2))); 
-    transform: scale(calc(var(--refraction-scale, 1) * 1.02)) rotate(var(--refraction-rotate, 0deg)); 
-  }
-}
-
 /* ── Bounce suave ── */
 @keyframes bounceSoft {
   0%, 100% { transform: translateY(0); }

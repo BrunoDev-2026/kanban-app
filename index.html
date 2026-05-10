@@ -48,10 +48,7 @@
         </div>
       </div>
 
-      <!-- Emoji + Título -->
-      <button class="board-emoji-btn" id="boardEmojiDisplay" title="Mudar emoji do quadro" aria-label="Emoji do quadro">
-        <span id="boardEmojiText"></span>
-      </button>
+      <!-- Título Centralizado -->
       <span class="board-title" id="boardTitleDisplay" title="Clique para editar o nome do quadro" role="button" tabindex="0">RH - Marina</span>
       
       <div id="offlineIndicator" class="offline-badge" style="display: none;" title="Modo Offline">
@@ -174,20 +171,6 @@
       <!-- Colunas geradas dinamicamente via JS -->
     </div>
   </main>
-
-  <!-- ===== MODAL: Emoji Picker ===== -->
-  <div class="modal-overlay" id="emojiModal" role="dialog" aria-modal="true" aria-labelledby="emojiModalTitle">
-    <div class="modal glass">
-      <div class="modal-header">
-        <h2 id="emojiModalTitle">Escolher Emoji</h2>
-        <button class="btn-close" id="closeEmojiModal" aria-label="Fechar">&#x2715;</button>
-      </div>
-      <div class="modal-body">
-        <div class="emoji-grid" id="emojiGrid" role="grid" aria-label="Grade de emojis"></div>
-        <button class="btn-secondary btn-full" id="clearEmojiBtn">Remover emoji</button>
-      </div>
-    </div>
-  </div>
 
   <!-- ===== MODAL: Nova / Editar Coluna ===== -->
   <div class="modal-overlay" id="columnModal" role="dialog" aria-modal="true" aria-labelledby="columnModalTitle">

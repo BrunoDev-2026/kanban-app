@@ -24,16 +24,15 @@ let saveTimeout = null;
 function buildDefaultState() {
   return {
     title: 'Meu Quadro',
-    emoji: '🚀',
     profile: {
       name: 'Usuário',
-      color: '#6C63FF',
+      color: '#2563EB',
       focusTime: 25,
       breakTime: 5
     },
     lastView: 'board',
     columns: [
-      { id: uid(), title: 'A Fazer',      color: '#6C63FF', limit: 0, cards: [] },
+      { id: uid(), title: 'A Fazer',      color: '#2563EB', limit: 0, cards: [] },
       { id: uid(), title: 'Em Progresso', color: '#FFB347', limit: 0, cards: [] },
       { id: uid(), title: 'Revisão',      color: '#4FC3F7', limit: 0, cards: [] },
       { id: uid(), title: 'Concluído',    color: '#43D9AD', limit: 0, cards: [] }

@@ -226,7 +226,7 @@ window.Sync = {
   },
   showLogs: () => {
     const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    console.log('%c📋 Histórico de Sincronização:', 'font-weight: bold; font-size: 1.2em; color: #7C3AED;');
+    console.log('%c📋 Histórico de Sincronização:', 'font-weight: bold; font-size: 1.2em; color: #2563EB;');
     console.table(logs);
   },
   listPendingOperations: () => {

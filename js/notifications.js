@@ -88,6 +88,8 @@ function playMelody(type = 'start', priority = 'low') {
     // Curto-circuito: Tons ríspidos e aleatórios (sawtooth) para faíscas
     const freq = 400 + Math.random() * 800;
     playTick(freq, 0.06, 0.02, false, 'sawtooth');
+  } else if (type === 'click') {
+    playTick(1200, 0.05, 0.03, false, 'sine');
   } else {
     playTick(660, 0.2, 0.05, true);
     setTimeout(() => playTick(440, 0.3, 0.04, true), 200);

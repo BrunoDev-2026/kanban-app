@@ -6,8 +6,8 @@
 
 /* ════════ ESTADO GLOBAL ════════ */
 let state = {
-  title: 'Meu Quadro', emoji: '🚀',
-  profile: { name: 'Usuario', color: '#6C63FF', focusTime: 25, breakTime: 5 },
+  title: 'Meu Quadro',
+  profile: { name: 'Usuario', color: '#2563EB', focusTime: 25, breakTime: 5 },
   columns: [], archived: [], history: {}
 };
 
@@ -20,7 +20,7 @@ const appFilters = { searchTerm: '', priority: 'all', tag: 'all', exactDateFilte
 
 /* ════════ COLUNAS PADRÃO ════════ */
 const DEFAULT_COLS = [
-  { title: 'A Fazer',      color: '#6C63FF' },
+  { title: 'A Fazer',      color: '#2563EB' },
   { title: 'Em Progresso', color: '#FFB347' },
   { title: 'Revisao',      color: '#4FC3F7' },
   { title: 'Concluido',    color: '#43D9AD' }
@@ -72,7 +72,6 @@ function buildColumnsFromAPI(tarefas, savedCols) {
 function saveMetadata() {
   const meta = {
     title:    state.title,
-    emoji:    state.emoji,
     profile:  state.profile,
     archived: state.archived,
     history:  state.history,
@@ -92,7 +91,6 @@ async function initApp() {
   try { local = JSON.parse(localStorage.getItem('kanflow_state') || '{}'); } catch(e) {}
 
   state.title    = local.title    || 'Meu Quadro';
-  state.emoji    = local.emoji    !== undefined ? local.emoji : '🚀';
   state.profile  = local.profile  || state.profile;
   state.archived = Array.isArray(local.archived) ? local.archived : [];
   state.history  = local.history  || {};
@@ -333,8 +331,7 @@ function render(){
   else if(!activeFocusCardId){document.body.classList.remove('focus-mode-active');const fs=document.getElementById('focusModeSection');if(fs)fs.style.display='none';}
   board.className=currentView==='list'?'board view-list':'board';
   if(!showDashboard)board.innerHTML='';
-  const et=document.getElementById('boardEmojiText'),td=document.getElementById('boardTitleDisplay');
-  if(et)et.textContent=state.emoji||'';
+  const td=document.getElementById('boardTitleDisplay');
   if(td)td.textContent=state.title||'Meu Quadro';
   updateAvatarDisplay(state.profile);
   const doneCol=state.columns.find(c=>c.title.toLowerCase().includes('conclu'));
@@ -365,16 +362,6 @@ function activateTitleEdit(){
   const cancel=()=>{if(saved)return;saved=true;render();};
   input.addEventListener('blur',save);
   input.addEventListener('keydown',e=>{if(e.key==='Enter'){input.removeEventListener('blur',save);save();}if(e.key==='Escape'){input.removeEventListener('blur',save);cancel();}});
-}
-
-function openEmojiModal(){
-  const grid=document.getElementById('emojiGrid');grid.innerHTML='';
-  EMOJI_LIST.forEach(emoji=>{
-    const btn=document.createElement('button');btn.className='emoji-item';btn.textContent=emoji;
-    btn.addEventListener('click',()=>{state.emoji=emoji;saveMetadata();render();showToast('Emoji '+emoji+'! ✨');closeModal('emojiModal');});
-    grid.appendChild(btn);
-  });
-  openModal('emojiModal');
 }
 
 function openArchiveModal(){
@@ -434,55 +421,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
   document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
 
-  // Efeito de refração de luz (Glossy Reflection) no cabeçalho
-  const header = document.querySelector('.app-header');
-  // Seleciona Lucide, Logo e Avatar dentro do header para interação
-  const interactiveIcons = header?.querySelectorAll('.lucide, .app-logo, .user-avatar, .board-title, .header-stats');
-
-  header?.addEventListener('mousemove', e => {
-    const rect = header.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    header.style.setProperty('--header-x', `${x}px`);
-    header.style.setProperty('--header-y', `${y}px`);
-
-    interactiveIcons?.forEach(icon => {
-      const iRect = icon.getBoundingClientRect();
-      const centerX = iRect.left + iRect.width / 2 - rect.left;
-      const centerY = iRect.top + iRect.height / 2 - rect.top;
-      
-      const dx = x - centerX;
-      const dy = y - centerY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      const range = 200; // Raio de influência do efeito nos ícones
-      if (dist < range) {
-        const power = (1 - dist / range);
-        
-        icon.style.setProperty('--refraction-power', power);
-        icon.style.setProperty('--refraction-scale', 1 + (power * 0.12));
-
-        // Se for o título, calcula a inclinação 3D (tilt)
-        if (icon.classList.contains('board-title')) {
-          const tiltX = (dx / range) * 15; // Inclinação horizontal
-          const tiltY = (dy / range) * -15; // Inclinação vertical (invertida para física natural)
-          icon.style.setProperty('--title-tilt-x', `${tiltX}deg`);
-          icon.style.setProperty('--title-tilt-y', `${tiltY}deg`);
-        }
-
-        // Rotaciona até 15 graus dependendo de quão à esquerda ou direita o brilho está do ícone
-        const rotation = (dx > 0 ? -1 : 1) * power * 15;
-        icon.style.setProperty('--refraction-rotate', `${rotation}deg`);
-      } else {
-        icon.style.setProperty('--refraction-power', '0');
-        icon.style.setProperty('--refraction-scale', '1');
-        icon.style.setProperty('--refraction-rotate', '0deg');
-        if (icon.classList.contains('board-title')) {
-          icon.style.setProperty('--title-tilt-x', '0deg');
-          icon.style.setProperty('--title-tilt-y', '0deg');
-        }
-      }
-    });
+  // Som de clique global nos botões
+  document.addEventListener('click', e => {
+    if (e.target.closest('button') || e.target.closest('.btn-icon') || e.target.closest('.col-btn') || e.target.closest('.card-btn')) {
+      playMelody('click');
+    }
   });
 
   // Parallax sutil para a grade das colunas vazias

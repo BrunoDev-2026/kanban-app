@@ -7,8 +7,8 @@
 :root {
   --bg-base:        #020617;
   --bg-deep:        #0B1120;
-  --accent:         #7C3AED; /* Roxo Destaque */
-  --accent-light:   #2563EB; /* Azul Principal */
+  --accent:         #2563EB; /* Azul Destaque */
+  --accent-light:   #60A5FA; /* Azul mais claro para o gradiente */
   --accent2:        #EF4444; /* Vermelho Urgente */
   --accent3:        #10B981; /* Verde Sucesso */
   --accent-amber:   #F59E0B; /* Laranja Atenção */
@@ -28,7 +28,7 @@
 
   --shadow-card:    0 10px 30px rgba(0, 0, 0, 0.35);
   --shadow-col:     0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-glow:    0 0 40px rgba(108, 99, 255, 0.18);
+  --shadow-glow:    0 0 40px rgba(37, 99, 235, 0.18);
   --shadow-modal:   0 24px 64px rgba(0, 0, 0, 0.55);
 
   --radius-xl:  20px;
@@ -44,8 +44,8 @@
   --col-width:  290px;
   --header-h:   62px;
 
-  --font-display: "Syne", sans-serif;
-  --font-body:    "DM Sans", sans-serif;
+  --font-display: sans-serif;
+  --font-body:    sans-serif;
 }
 
 /* ── Reset ── */
@@ -71,11 +71,11 @@ body {
 /* ── Novos Temas SaaS ── */
 body.theme-professional {
   background: radial-gradient(circle at center, #111827 0%, #0B1120 45%, #020617 100%);
-  --accent: #7C3AED;
+  --accent: #2563EB;
 }
 body.theme-neon {
   background: linear-gradient(135deg, #000 0%, #09090b 100%);
-  --accent: #f0abfc;
+  --accent: #60A5FA;
   --accent-light: #22d3ee;
   --card-border: rgba(34, 211, 238, 0.2);
 }
@@ -87,14 +87,14 @@ body.theme-glass {
 body.theme-aurora {
   background: 
     radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.15) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.15) 0, transparent 50%),
     #020617;
   --accent: #10B981;
 }
 body.theme-business {
   background: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
+  --text-primary: #000000;
+  --text-secondary: #333333;
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
   --glass-bg: #f1f5f9;
@@ -173,11 +173,10 @@ body::before {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
   min-width: 0;
   overflow: hidden;
-  padding-left: 20px;
 }
 
 /* ── Avatar & Profile ── */
@@ -276,8 +275,8 @@ body::before {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.3);
   padding: 4px 12px;
   border-radius: var(--radius-xl);
   color: var(--accent);
@@ -305,7 +304,7 @@ body::before {
 
 .card.is-focusing {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3), var(--shadow-card) !important;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.3), var(--shadow-card) !important;
   animation: focusPulse 2s infinite ease-in-out;
 }
 @keyframes focusPulse {
@@ -374,6 +373,7 @@ body::before {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  display: none; /* Emoji removido */
 }
 .board-emoji-btn:hover {
   transform: scale(1.22) rotate(8deg);
@@ -466,14 +466,14 @@ body::before {
 }
 
 .btn-accent {
-  background: rgba(108, 99, 255, 0.15);
-  border-color: rgba(108, 99, 255, 0.4);
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.4);
   color: var(--accent-light);
 }
 .btn-accent:hover {
-  background: rgba(108, 99, 255, 0.25);
+  background: rgba(37, 99, 235, 0.25);
   border-color: var(--accent);
-  box-shadow: 0 0 14px rgba(108, 99, 255, 0.28);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.28);
   color: #fff;
 }
 
@@ -488,11 +488,11 @@ body::before {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 4px 16px rgba(108, 99, 255, 0.38);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.38);
 }
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(108, 99, 255, 0.5);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
 }
 .btn-primary:active { transform: translateY(0); }
 
@@ -752,8 +752,8 @@ body::before {
 }
 .add-card-btn:hover {
   color: var(--accent-light);
-  border-color: rgba(108, 99, 255, 0.45);
-  background: rgba(108, 99, 255, 0.06);
+  border-color: rgba(37, 99, 235, 0.45);
+  background: rgba(37, 99, 235, 0.06);
 }
 
 /* ══════════════════════════════════════════
@@ -959,9 +959,9 @@ body::before {
 
 /* ── Ghost (drop placeholder) ── */
 .card-ghost {
-  border: 2px dashed rgba(108, 99, 255, 0.55);
+  border: 2px dashed rgba(37, 99, 235, 0.55);
   border-radius: var(--radius-md);
-  background: rgba(108, 99, 255, 0.06);
+  background: rgba(37, 99, 235, 0.06);
   min-height: 58px;
   animation: ghostPulse 1.2s ease-in-out infinite;
 }
@@ -1105,7 +1105,7 @@ body::before {
 .modal-body input:focus,
 .modal-body textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
 .modal-body input::placeholder,
 .modal-body textarea::placeholder {
@@ -1226,7 +1226,7 @@ body::before {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(108, 99, 255, 0.9);
+  background: rgba(37, 99, 235, 0.9);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;

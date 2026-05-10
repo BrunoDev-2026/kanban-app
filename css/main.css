@@ -7,7 +7,7 @@
 :root {
   --bg-base:        #111317;
   --bg-deep:        #171a1f;
-  --accent:         #7C3AED; /* Roxo Destaque */
+  --accent:         #2563EB; /* Azul Destaque */
   --accent-light:   #3b82f6; /* Azul Corporativo */
   --accent2:        #EF4444; /* Vermelho Urgente */
   --accent3:        #10B981; /* Verde Sucesso */
@@ -18,7 +18,7 @@
   --glass-border:   rgba(255, 255, 255, 0.06);
   --glass-border-active: rgba(80, 120, 255, 0.2);
 
-  --text-primary:   #eeeaff;
+  --text-primary:   #f8fafc; /* Mantido para modo escuro */
   --text-secondary: rgba(238, 234, 255, 0.58);
   --text-muted:     rgba(238, 234, 255, 0.32);
 
@@ -28,7 +28,7 @@
 
   --shadow-card:    0 10px 30px rgba(0, 0, 0, 0.35);
   --shadow-col:     0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-glow:    0 0 40px rgba(108, 99, 255, 0.18);
+  --shadow-glow:    0 0 40px rgba(37, 99, 235, 0.18);
   --shadow-modal:   0 24px 64px rgba(0, 0, 0, 0.55);
 
   --radius-xl:  20px;
@@ -44,8 +44,8 @@
   --col-width:  290px;
   --header-h:   62px;
 
-  --font-display: "Syne", sans-serif;
-  --font-body:    "DM Sans", sans-serif;
+  --font-display: sans-serif;
+  --font-body:    sans-serif;
 }
 
 /* ── Reset ── */
@@ -96,9 +96,9 @@ body.theme-light {
   background: #f8fafc;
   --bg-base:        #f8fafc;
   --bg-deep:        #ffffff;
-  --text-primary:   #0f172a;
-  --text-secondary: #334155;
-  --text-muted:     #64748b;
+  --text-primary:   #000000; /* Fonte preta no modo claro */
+  --text-secondary: #222222;
+  --text-muted:     #444444;
   --accent:         #2563eb;
   --accent-light:   #3b82f6;
   --glass-bg:       rgba(255, 255, 255, 0.9);
@@ -115,7 +115,7 @@ body.theme-light {
   --header-bg:      rgba(255, 255, 255, 0.9);
   --header-border:  rgba(0, 0, 0, 0.08);
   --footer-bg:      linear-gradient(to top, #f1f5f9, transparent);
-  --title-color:    #0f172a;
+  --title-color:    #000000; /* Título preto no modo claro */
 }
 
 /* Melhoria de contraste para Tags no Modo Claro */
@@ -208,13 +208,9 @@ body::before {
   object-fit: contain;
   display: block;
   border-radius: 6px;
-  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)); /* Neon azul vibrante */
-  transition: all 0.2s var(--ease);
+  transition: transform 0.2s var(--ease);
   user-select: none;
   -webkit-user-drag: none;
-  animation: logoPulse 3s infinite ease-in-out;
-  transform: scale(var(--refraction-scale, 1)) rotate(var(--refraction-rotate, 0deg));
-  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)) brightness(calc(1 + (var(--refraction-power, 0) * 0.2)));
 }
 .app-logo:hover {
   opacity: 1;
@@ -226,10 +222,10 @@ body::before {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Centraliza o título */
   gap: 15px;
   min-width: 0;
-  padding: 0 20px;
+  padding: 0;
 }
 
 /* ── Header: Right ── */
@@ -268,10 +264,7 @@ body::before {
   font-size: 14px;
   color: #fff;
   border: 2px solid var(--glass-border-active);
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-  transform: scale(var(--refraction-scale, 1)) rotate(var(--refraction-rotate, 0deg));
-  filter: brightness(calc(1 + (var(--refraction-power, 0) * 0.2)));
-  transition: transform 0.3s ease-out, filter 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s var(--ease);
 }
 
 /* ── Título e Emoji do Quadro ── */
@@ -288,6 +281,7 @@ body::before {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  display: none; /* Emoji removido */
 }
 .board-emoji-btn:hover {
   transform: scale(1.22) rotate(8deg);
@@ -301,13 +295,6 @@ body::before {
   color: var(--title-color); /* Dinâmico por tema */
   letter-spacing: 0.2px;
   cursor: pointer;
-  transition: transform 0.4s ease-out, background 0.2s var(--ease);
-  transform-style: preserve-3d;
-  transform: perspective(1000px) 
-             scale(var(--refraction-scale, 1))
-             rotateX(var(--title-tilt-y, 0deg)) 
-             rotateY(var(--title-tilt-x, 0deg))
-             rotate(var(--refraction-rotate, 0deg));
   padding: 5px 10px;
   border-radius: var(--radius-xs);
   white-space: nowrap;
@@ -515,7 +502,7 @@ body::before {
 .badge-subtitle {
   font-size: 8px;
   font-weight: 600;
-  color: #BA68C8; /* Lilás suave */
+  color: #60A5FA; /* Azul suave */
   letter-spacing: 0.3px;
 }
 
@@ -686,8 +673,8 @@ body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.3);
   padding: 4px 12px;
   border-radius: var(--radius-xl);
   color: var(--accent);
