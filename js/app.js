@@ -154,26 +154,10 @@ window._revertDelete = function(card, colId) {
 };
 
 /* ════════ THEME ENGINE ════════ */
-const THEMES = {
-  'theme-dark': {
-    '--accent':'#3B82F6','--accent-light':'#60A5FA',
-    '--bg-base':'#020617','--bg-deep':'#0B1120',
-    '--glass-bg':'rgba(15,23,42,0.8)','--glass-border':'rgba(255,255,255,0.12)',
-    '--glass-bg-hover':'rgba(255,255,255,0.09)','--text-primary':'#eeeaff',
-    '--card-bg':'rgba(10,20,50,0.92)'
-  },
-  'theme-light': {
-    '--accent':'#2563eb','--accent-light':'#3b82f6',
-    '--bg-base':'#f8fafc','--bg-deep':'#ffffff',
-    '--glass-bg':'rgba(255,255,255,0.9)','--glass-border':'rgba(0,0,0,0.1)',
-    '--glass-bg-hover':'rgba(0,0,0,0.03)','--text-primary':'#0f172a',
-    '--card-bg':'#ffffff'
-  }
-};
 function applyTheme(name) {
-  const vars = THEMES[name] || THEMES['theme-dark'];
-  Object.entries(vars).forEach(([p,v]) => document.documentElement.style.setProperty(p,v));
-  document.body.className = name;
+  // Simplesmente aplica a classe ao body. O CSS cuida das variáveis.
+  const themeClass = (name === 'theme-light' || name === 'theme-dark') ? name : 'theme-dark';
+  document.body.className = themeClass;
   if (typeof saveTheme === 'function') saveTheme(name);
 }
 
@@ -449,6 +433,57 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('click',()=>document.getElementById('moreDropdown')?.classList.remove('open'));
   document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
   document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
+
+  // Efeito de refração de luz (Glossy Reflection) no cabeçalho
+  const header = document.querySelector('.app-header');
+  // Seleciona Lucide, Logo e Avatar dentro do header para interação
+  const interactiveIcons = header?.querySelectorAll('.lucide, .app-logo, .user-avatar, .board-title, .header-stats');
+
+  header?.addEventListener('mousemove', e => {
+    const rect = header.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    header.style.setProperty('--header-x', `${x}px`);
+    header.style.setProperty('--header-y', `${y}px`);
+
+    interactiveIcons?.forEach(icon => {
+      const iRect = icon.getBoundingClientRect();
+      const centerX = iRect.left + iRect.width / 2 - rect.left;
+      const centerY = iRect.top + iRect.height / 2 - rect.top;
+      
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      const range = 200; // Raio de influência do efeito nos ícones
+      if (dist < range) {
+        const power = (1 - dist / range);
+        
+        icon.style.setProperty('--refraction-power', power);
+        icon.style.setProperty('--refraction-scale', 1 + (power * 0.12));
+
+        // Se for o título, calcula a inclinação 3D (tilt)
+        if (icon.classList.contains('board-title')) {
+          const tiltX = (dx / range) * 15; // Inclinação horizontal
+          const tiltY = (dy / range) * -15; // Inclinação vertical (invertida para física natural)
+          icon.style.setProperty('--title-tilt-x', `${tiltX}deg`);
+          icon.style.setProperty('--title-tilt-y', `${tiltY}deg`);
+        }
+
+        // Rotaciona até 15 graus dependendo de quão à esquerda ou direita o brilho está do ícone
+        const rotation = (dx > 0 ? -1 : 1) * power * 15;
+        icon.style.setProperty('--refraction-rotate', `${rotation}deg`);
+      } else {
+        icon.style.setProperty('--refraction-power', '0');
+        icon.style.setProperty('--refraction-scale', '1');
+        icon.style.setProperty('--refraction-rotate', '0deg');
+        if (icon.classList.contains('board-title')) {
+          icon.style.setProperty('--title-tilt-x', '0deg');
+          icon.style.setProperty('--title-tilt-y', '0deg');
+        }
+      }
+    });
+  });
 
   // Parallax sutil para a grade das colunas vazias
   document.getElementById('board')?.addEventListener('mousemove', e => {

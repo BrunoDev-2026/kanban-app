@@ -65,7 +65,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background: var(--bg-base);
-  transition: background 0.8s ease-in-out;
+  transition: background 0.5s var(--ease), color 0.5s var(--ease);
 }
 
 /* ══════════════════════════════════════════
@@ -85,6 +85,10 @@ body.theme-dark {
   --shadow-glow:  0 0 40px rgba(80, 120, 255, 0.08);
   --card-bg:      rgba(28, 33, 39, 0.98);
   --card-border:  rgba(255, 255, 255, 0.05);
+  --header-bg:    rgba(15, 18, 25, 0.65);
+  --header-border: rgba(80, 120, 255, 0.15);
+  --footer-bg:    linear-gradient(to top, rgba(11, 11, 24, 0.9), transparent);
+  --title-color:  #ffffff;
 }
 
 /* ☀️ Light Mode */
@@ -108,11 +112,18 @@ body.theme-light {
   --shadow-col:     0 2px 8px rgba(0, 0, 0, 0.03);
   --shadow-glow:    0 0 20px rgba(37, 99, 235, 0.1);
   --shadow-modal:   0 10px 30px rgba(0, 0, 0, 0.1);
+  --header-bg:      rgba(255, 255, 255, 0.9);
+  --header-border:  rgba(0, 0, 0, 0.08);
+  --footer-bg:      linear-gradient(to top, #f1f5f9, transparent);
+  --title-color:    #0f172a;
 }
-body.theme-light .app-header {
-  background: rgba(255, 255, 255, 0.9);
-  border-bottom-color: #e2e8f0;
+
+/* Melhoria de contraste para Tags no Modo Claro */
+body.theme-light .card-tag {
+  filter: brightness(0.8); /* Escurece a tag para melhor leitura no fundo claro */
+  font-weight: 700;
 }
+
 body.theme-light::before {
   opacity: 0.15;
 }
@@ -165,11 +176,22 @@ body::before {
   justify-content: space-between;
   padding: 16px 40px; /* Padding aumentado para respiro conforme prompt */
   z-index: 100;
-  background: rgba(15, 18, 25, 0.65); /* Glassmorphism translúcido */
+  background: var(--header-bg); /* Agora variável */
   backdrop-filter: blur(10px); /* Blur especificado no prompt */
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(80, 120, 255, 0.15); /* Borda fina com brilho azul sutil */
+  border-bottom: 1px solid var(--header-border);
   gap: 24px;
+  overflow: hidden;
+}
+
+/* ── Efeito de Refração (Glossy Reflection) ── */
+.app-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 250px at var(--header-x, -500px) var(--header-y, -500px), rgba(255, 255, 255, 0.07), transparent 80%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* ── Header: Left (Logo + Avatar) ── */
@@ -191,6 +213,8 @@ body::before {
   user-select: none;
   -webkit-user-drag: none;
   animation: logoPulse 3s infinite ease-in-out;
+  transform: scale(var(--refraction-scale, 1)) rotate(var(--refraction-rotate, 0deg));
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)) brightness(calc(1 + (var(--refraction-power, 0) * 0.2)));
 }
 .app-logo:hover {
   opacity: 1;
@@ -244,7 +268,10 @@ body::before {
   font-size: 14px;
   color: #fff;
   border: 2px solid var(--glass-border-active);
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); /* Brilho externo azul neon sutil */
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  transform: scale(var(--refraction-scale, 1)) rotate(var(--refraction-rotate, 0deg));
+  filter: brightness(calc(1 + (var(--refraction-power, 0) * 0.2)));
+  transition: transform 0.3s ease-out, filter 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ── Título e Emoji do Quadro ── */
@@ -271,10 +298,16 @@ body::before {
   font-family: var(--font-display);
   font-size: 22px; /* Ponto focal principal */
   font-weight: 800;
-  color: #fff; /* Branco puro */
+  color: var(--title-color); /* Dinâmico por tema */
   letter-spacing: 0.2px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform 0.4s ease-out, background 0.2s var(--ease);
+  transform-style: preserve-3d;
+  transform: perspective(1000px) 
+             scale(var(--refraction-scale, 1))
+             rotateX(var(--title-tilt-y, 0deg)) 
+             rotateY(var(--title-tilt-x, 0deg))
+             rotate(var(--refraction-rotate, 0deg));
   padding: 5px 10px;
   border-radius: var(--radius-xs);
   white-space: nowrap;
@@ -419,7 +452,11 @@ body::before {
   font-size: 14px;
   font-weight: 600;
   color: #fff;
-  box-shadow: 0 0 12px rgba(67, 217, 173, 0.5); /* Brilho teal constante */
+  /* Pulso dinâmico baseado na refração */
+  box-shadow: 0 0 calc(12px + (var(--refraction-power, 0) * 15px)) rgba(67, 217, 173, calc(0.5 + (var(--refraction-power, 0) * 0.5)));
+  background: rgba(67, 217, 173, calc(0.15 + (var(--refraction-power, 0) * 0.3)));
+  transform: scale(var(--refraction-scale, 1));
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .header-stats i { display: none; } /* Oculta ícone para focar no número brilhante */
@@ -491,7 +528,7 @@ body::before {
 .app-footer {
   margin-top: 60px;
   padding: 40px 20px;
-  background: linear-gradient(to top, rgba(11, 11, 24, 0.9), transparent);
+  background: var(--footer-bg);
   border-top: 1px solid var(--glass-border);
   display: flex;
   justify-content: center;
@@ -558,11 +595,6 @@ body::before {
   letter-spacing: 1px;
   color: var(--text-muted);
   text-transform: uppercase;
-}
-
-body.theme-light .app-footer {
-  background: linear-gradient(to top, #f1f5f9, transparent);
-  border-top-color: #e2e8f0;
 }
 
 /* ── Search & Filters ── */

@@ -10,8 +10,19 @@
   stroke-width: 2.2px;
   width: 18px;
   height: 18px;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease-out; /* Transição mais suave para a refração */
   color: var(--accent);
+  /* Combina a rotação da refração com a rotação do tema */
+  transform: scale(var(--refraction-scale, 1)) rotate(calc(var(--refraction-rotate, 0deg) + var(--theme-rotate, 0deg)));
+}
+
+#themeToggleBtn .lucide {
+  transition: transform 0.5s var(--ease), filter 0.3s ease;
+}
+
+/* Rotaciona 360 graus quando o modo claro está ativo */
+body.theme-light #themeToggleBtn .lucide {
+  --theme-rotate: 360deg;
 }
 
 .btn-icon {
@@ -35,7 +46,7 @@
 }
 
 .btn-icon:hover .lucide {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(var(--refraction-rotate, 0deg));
 }
 
 .btn-ghost {
@@ -67,6 +78,9 @@
   background: #6D28D9;
   box-shadow: 0 0 22px rgba(124, 58, 237, 0.5);
   color: #fff;
+  animation: neonPulse 1.5s infinite ease-in-out;
+  border: 1px solid rgba(124, 58, 237, 0.6);
+  transform: translateY(-1px);
 }
 
 .btn-primary {

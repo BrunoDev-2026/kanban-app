@@ -1,12 +1,11 @@
 {
   "name": "kanban-backend",
   "version": "1.0.0",
-  "description": "Backend para o app Kanban com persistência em MongoDB",
+  "description": "Backend para o app Kanban com persistência em Firebase Firestore",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "deploy": "node ../update-version.js && git add .. && git commit -m \"chore: update version and assets for deploy\" && git push origin main"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "compression": "^1.7.4",
