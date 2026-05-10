@@ -4,6 +4,8 @@
  */
 'use strict';
 
+console.log("KANBAN NEW VERSION LOADED");
+
 /* ════════ ESTADO GLOBAL ════════ */
 let state = {
   title: 'Meu Quadro',
@@ -115,7 +117,9 @@ async function initApp() {
 
   render();
 
-  // 3. Processa outbox apos 2s (aguarda servidor acordar)
+  // 3. Gerenciamento Profissional de PWA (Auto-update)
+  setupPWAUpdates();
+
   setTimeout(async () => {
     const pendentes = window.Sync.getOutbox();
     if (pendentes.length > 0) {
@@ -128,6 +132,67 @@ async function initApp() {
       } catch(e) { /* servidor ainda dormindo */ }
     }
   }, 2000);
+}
+
+/**
+ * Configura a detecção de novas versões do PWA
+ */
+function setupPWAUpdates() {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    const progressUI = document.getElementById('pwa-install-progress');
+    const progressFill = document.getElementById('progress-fill');
+
+    // Se houver um novo SW sendo instalado
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      
+      // Mostra indicador de progresso
+      if (progressUI) progressUI.style.display = 'block';
+
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installing' && progressFill) {
+            progressFill.style.width = '45%'; // Progresso simulado de download
+        }
+
+        // Quando o novo SW estiver instalado e pronto para ativar
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          if (progressFill) progressFill.style.width = '100%';
+          setTimeout(() => { if (progressUI) progressUI.style.display = 'none'; }, 1000);
+          showUpdateNotification(newWorker);
+        }
+      });
+    });
+  });
+
+  // Recarrega a página automaticamente quando o novo SW assumir o controle
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
+
+/**
+ * Exibe o Toast/Botão de "Nova Versão Disponível"
+ */
+function showUpdateNotification(worker) {
+  const toast = document.createElement('div');
+  toast.className = 'update-toast glass fade-in';
+  toast.innerHTML = `
+    <div class="update-content">
+      <p>🚀 <strong>Nova versão disponível!</strong></p>
+      <button id="btnUpdateApp" class="btn-update">Atualizar Agora</button>
+    </div>
+  `;
+  document.body.appendChild(toast);
+
+  document.getElementById('btnUpdateApp').addEventListener('click', () => {
+    playMelody('start');
+    worker.postMessage({ type: 'SKIP_WAITING' });
+  });
 }
 
 // Recarrega o estado a partir da API (fonte da verdade)

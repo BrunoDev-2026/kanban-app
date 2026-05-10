@@ -1,0 +1,47 @@
+name: Deploy PWA with Auto-Version
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Workbox Build
+        run: npm install workbox-build
+
+      - name: Inject Version into SW and HTML
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: node update-version.js
+
+      - name: Generate Workbox Precache Manifest
+        run: node workbox-build-script.js
+
+      - name: Compress Assets (Gzip & Brotli)
+        uses: sardari/action-compress-assets@v1.0.0
+        with:
+          paths: |
+            ./**/*.{html,js,css,json,svg,png,jpg,webp}
+          algorithm: 'gzip, brotli'
+          level: '9' # Max compression level
+          delete-original: 'false' # Keep original files
+      # Exemplo de Deploy para GitHub Pages
+      # Se usar Render/Vercel, substitua este passo pela ação específica
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          # Importante: Garantir que arquivos com ponto (como .github) não sejam ignorados
+          # ou que o sw.js seja incluído corretamente.
+          publish_branch: gh-pages

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline | MB FlowBoard</title>
+    <style>
+        body {
+            background: #020617;
+            color: #f8fafc;
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container { padding: 20px; }
+        h1 { color: #7C3AED; font-size: 2.5rem; margin-bottom: 10px; }
+        p { color: #94a3b8; margin-bottom: 20px; }
+        button {
+            background: #7C3AED;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ops! Você está sem conexão.</h1>
+        <p>Esta página ainda não foi salva para visualização offline ou o servidor está indisponível.</p>
+        <button onclick="window.location.reload()">Tentar Novamente</button>
+    </div>
+</body>
+</html>
