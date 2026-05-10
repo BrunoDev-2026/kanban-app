@@ -56,14 +56,16 @@
 }
 
 .btn-accent {
-  background: rgba(108, 99, 255, 0.15);
-  border-color: rgba(108, 99, 255, 0.4);
-  color: var(--accent-light);
+  background: #7C3AED; /* Roxo profundo sólido e limpo */
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 22px;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 .btn-accent:hover {
-  background: rgba(108, 99, 255, 0.25);
-  border-color: var(--accent);
-  box-shadow: 0 0 14px rgba(108, 99, 255, 0.28);
+  background: #6D28D9;
+  box-shadow: 0 0 22px rgba(124, 58, 237, 0.5);
   color: #fff;
 }
 

@@ -158,18 +158,18 @@ body::before {
 .app-header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  min-height: var(--header-h);
+  min-height: 84px; /* Altura aumentada para layout panorâmico */
   height: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: 16px 40px; /* Padding aumentado para respiro conforme prompt */
   z-index: 100;
-  background: rgba(11, 11, 24, 0.78);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border-bottom: 1px solid var(--glass-border);
-  gap: 12px;
+  background: rgba(15, 18, 25, 0.65); /* Glassmorphism translúcido */
+  backdrop-filter: blur(10px); /* Blur especificado no prompt */
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(80, 120, 255, 0.15); /* Borda fina com brilho azul sutil */
+  gap: 24px;
 }
 
 /* ── Header: Left (Logo + Avatar) ── */
@@ -180,19 +180,20 @@ body::before {
 }
 
 .app-logo {
-  height: 66px;
+  height: 52px;
   width: auto;
   max-width: 175px;
   object-fit: contain;
   display: block;
   border-radius: 6px;
-  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.35));
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)); /* Neon azul vibrante */
   transition: all 0.2s var(--ease);
   user-select: none;
   -webkit-user-drag: none;
+  animation: logoPulse 3s infinite ease-in-out;
 }
 .app-logo:hover {
-  opacity: 0.88;
+  opacity: 1;
   transform: scale(1.03);
 }
 
@@ -226,13 +227,13 @@ body::before {
 /* ── Avatar & Profile ── */
 .user-avatar-wrapper {
   cursor: pointer;
-  margin-right: 15px;
+  margin-right: 20px;
   transition: var(--transition);
 }
 .user-avatar-wrapper:hover { transform: scale(1.1); }
 .user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 44px; /* Maior conforme solicitado */
+  height: 44px;
   border-radius: 50%;
   background: var(--accent);
   display: flex;
@@ -243,7 +244,7 @@ body::before {
   font-size: 14px;
   color: #fff;
   border: 2px solid var(--glass-border-active);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); /* Brilho externo azul neon sutil */
 }
 
 /* ── Título e Emoji do Quadro ── */
@@ -268,9 +269,9 @@ body::before {
 
 .board-title {
   font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-size: 22px; /* Ponto focal principal */
+  font-weight: 800;
+  color: #fff; /* Branco puro */
   letter-spacing: 0.2px;
   cursor: pointer;
   transition: var(--transition);
@@ -406,16 +407,22 @@ body::before {
 /* ── Stats Header ── */
 .header-stats {
   display: flex;
+  justify-content: center;
   align-items: center;
-  background: rgba(67, 217, 173, 0.1);
-  border: 1px solid rgba(67, 217, 173, 0.2);
-  padding: 4px 10px;
-  border-radius: var(--radius-xl);
+  background: rgba(67, 217, 173, 0.15);
+  border: 1px solid rgba(67, 217, 173, 0.4);
+  width: 32px; /* Formato circular definido */
+  height: 32px;
+  padding: 0;
+  border-radius: 50%; 
   margin-left: 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--accent3);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(67, 217, 173, 0.5); /* Brilho teal constante */
 }
+
+.header-stats i { display: none; } /* Oculta ícone para focar no número brilhante */
 
 .evolution-badge {
   display: flex;

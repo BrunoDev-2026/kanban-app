@@ -110,6 +110,11 @@
   to   { transform: rotate(360deg); }
 }
 
+@keyframes logoPulse {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 22px rgba(59, 130, 246, 0.8)); transform: scale(1.02); }
+}
+
 /* ── Bounce suave ── */
 @keyframes bounceSoft {
   0%, 100% { transform: translateY(0); }
