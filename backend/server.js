@@ -50,6 +50,27 @@ const db = admin.firestore();
 console.log('🔥 Firebase Admin inicializado com sucesso.');
 
 // ===== API ROUTES =====
+
+/**
+ * Rota de Health Check detalhada
+ * Verifica a integridade do processo e a conectividade com o Firestore
+ */
+app.get('/health', async (req, res) => {
+  try {
+    // Realiza uma consulta mínima para validar o acesso ao banco
+    await db.collection('tarefas').limit(1).get();
+    res.json({
+      status: 'healthy',
+      uptime: Math.floor(process.uptime()) + 's',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('🔴 Health Check Failure:', err.message);
+    res.status(503).json({ status: 'unhealthy', database: 'error', error: err.message });
+  }
+});
+
 app.get('/tarefas', async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

@@ -3,7 +3,7 @@
  * Service Worker — Network First para API, Cache First para assets
  */
 
-const CACHE_NAME = 'kanban-{{VERSION}}';
+const CACHE_NAME = 'kanban-20260510025614';
 const ASSETS = [
   '/',
   '/index.html',

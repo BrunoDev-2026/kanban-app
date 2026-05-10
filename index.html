@@ -19,12 +19,12 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- CSS Modular (ordem importa) -->
-  <link rel="stylesheet" href="/css/main.css?v={{VERSION}}" />
-  <link rel="stylesheet" href="/css/animations.css?v={{VERSION}}" />
-  <link rel="stylesheet" href="/css/dashboard.css?v={{VERSION}}" />
-  <link rel="stylesheet" href="/css/board.css?v={{VERSION}}" />
-  <link rel="stylesheet" href="/css/components.css?v={{VERSION}}" />
-  <link rel="stylesheet" href="/css/responsive.css?v={{VERSION}}" />
+  <link rel="stylesheet" href="/css/main.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/animations.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/dashboard.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/board.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/components.css?v=20260510025614" />
+  <link rel="stylesheet" href="/css/responsive.css?v=20260510025614" />
 
 </head>
 <body>
@@ -48,7 +48,10 @@
         </div>
       </div>
 
-      <!-- Título do Quadro -->
+      <!-- Emoji + Título -->
+      <button class="board-emoji-btn" id="boardEmojiDisplay" title="Mudar emoji do quadro" aria-label="Emoji do quadro">
+        <span id="boardEmojiText"></span>
+      </button>
       <span class="board-title" id="boardTitleDisplay" title="Clique para editar o nome do quadro" role="button" tabindex="0">RH - Marina</span>
       
       <div id="offlineIndicator" class="offline-badge" style="display: none;" title="Modo Offline">
@@ -375,27 +378,27 @@
   <div class="toast" id="toast" role="status" onclick="this.classList.remove('show')" title="Clique para fechar"></div>
 
   <!-- ===== JAVASCRIPT MODULAR (ordem importa) ===== -->
-  <script src="/js/api.js?v={{VERSION}}"></script>
-  <script src="/js/utils.js?v={{VERSION}}"></script>
-  <script src="/js/storage.js?v={{VERSION}}"></script>
-  <script src="/js/sync.js?v={{VERSION}}"></script>
-  <script src="/js/notifications.js?v={{VERSION}}"></script>
-  <script src="/js/tags.js?v={{VERSION}}"></script>
-  <script src="/js/filters.js?v={{VERSION}}"></script>
-  <script src="/js/metrics-logic.js?v={{VERSION}}"></script>
-  <script src="/js/dashboard.js?v={{VERSION}}"></script>
-  <script src="/js/dragdrop.js?v={{VERSION}}"></script>
-  <script src="/js/avatar.js?v={{VERSION}}"></script>
-  <script src="/js/shortcuts.js?v={{VERSION}}"></script>
-  <script src="/js/tasks.js?v={{VERSION}}"></script>
-  <script src="/js/app.js?v={{VERSION}}"></script>
+  <script src="/js/api.js?v=20260510025614"></script>
+  <script src="/js/utils.js?v=20260510025614"></script>
+  <script src="/js/storage.js?v=20260510025614"></script>
+  <script src="/js/sync.js?v=20260510025614"></script>
+  <script src="/js/notifications.js?v=20260510025614"></script>
+  <script src="/js/tags.js?v=20260510025614"></script>
+  <script src="/js/filters.js?v=20260510025614"></script>
+  <script src="/js/metrics-logic.js?v=20260510025614"></script>
+  <script src="/js/dashboard.js?v=20260510025614"></script>
+  <script src="/js/dragdrop.js?v=20260510025614"></script>
+  <script src="/js/avatar.js?v=20260510025614"></script>
+  <script src="/js/shortcuts.js?v=20260510025614"></script>
+  <script src="/js/tasks.js?v=20260510025614"></script>
+  <script src="/js/app.js?v=20260510025614"></script>
 
   <!-- script.js (raiz) é legado: não deve ser executado -->
 
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v={{VERSION}}').then(reg => {
+        navigator.serviceWorker.register('/sw.js?v=20260510025614').then(reg => {
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             newWorker.addEventListener('statechange', () => {
