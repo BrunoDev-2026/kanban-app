@@ -59,16 +59,11 @@
   animation: columnIn 0.38s var(--ease-pop) both;
 }
 
-/* ── Frosted Glass intenso para colunas vazias ── */
-.column:has(.column-empty-state) {
-  backdrop-filter: blur(50px);
-  -webkit-backdrop-filter: blur(50px);
-  background-color: rgba(30, 35, 45, 0.5);
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 25px 25px;
-  background-position: var(--grid-x, 0px) var(--grid-y, 0px);
+/* ── Estilo para a coluna vazia ── */
+.column.column-is-empty {
+  animation: intenseRainbowPulse 6s infinite ease-in-out; /* Ciclo de cores mais lento e intenso */
+  transition: background 0.5s ease, border-color 0.5s ease;
+  border-width: 2px; /* Borda um pouco mais grossa para destacar a cor */
 }
 
 /* ── Glow na grade ao arrastar sobre coluna vazia ── */
@@ -519,6 +514,32 @@ body.theme-light .card-priority-bar {
   background: rgba(37, 99, 235, 0.06);
   min-height: 58px;
   animation: ghostPulse 1.2s ease-in-out infinite;
+}
+
+/* Estilo para centralizar o botão "Adicionar tarefa" quando a coluna estiver vazia */
+.column-is-empty .cards-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1; /* Garante que o cards-area ocupe o espaço disponível */
+  min-height: 150px; /* Altura mínima para o efeito de centralização */
+}
+
+.column-is-empty .add-card-btn {
+  width: auto; /* Permite que o botão se ajuste ao conteúdo */
+  margin: 0; /* Remove as margens padrão para centralizar */
+  padding: 10px 20px; /* Ajusta o padding para um visual mais compacto */
+  animation: bounceSoft 2s infinite ease-in-out; /* Animação de pulo suave */
+  gap: 10px; /* Aumenta um pouco o espaço entre ícone e texto */
+  background: var(--accent); /* Cor de fundo distinta */
+  color: white; /* Texto branco para contraste */
+  border-color: var(--accent); /* Borda combinando com o fundo */
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); /* Sombra sutil */
+}
+
+.column-is-empty .add-card-btn svg {
+  color: white; /* Garante que o ícone seja branco */
 }
 
 /* ── Partícula de Faísca ── */

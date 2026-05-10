@@ -336,10 +336,10 @@ function buildColumn(col,isDone,hasPrev,hasNext){
   const exceeded=col.limit>0&&col.cards.length>col.limit;
   const progress=col.limit>0?Math.min((col.cards.length/col.limit)*100,100):0;
   const el=document.createElement('div');
-  el.className='column'+(exceeded?' limit-exceeded':'');
+  const isEmpty=col.cards.length===0;
+  el.className='column'+(exceeded?' limit-exceeded':'')+(col.cards.length===0?' column-is-empty':'');
   el.dataset.colId=col.id;
   el.setAttribute('role','listitem');
-  const emptyHTML=col.cards.length===0?'<div class="column-empty-state"><button class="btn-empty-create" data-col="'+col.id+'">+ Criar primeira tarefa</button></div>':'';
   el.innerHTML=
     '<div class="column-header" data-col-id="'+col.id+'">'+
     '<div class="column-drag-handle" draggable="true" title="Arrastar coluna"><i data-lucide="grip-vertical" size="16"></i></div>'+
@@ -351,9 +351,13 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+
     (col.limit>0?'<div class="column-progress-container"><div class="column-progress-bar" style="width:'+progress+'%;background:'+(exceeded?'var(--accent2)':col.color)+'"></div></div>':'')+
     '<div class="cards-area" data-col-id="'+col.id+'" role="list">'+
-    col.cards.map(c=>buildCardHTML(c,isDone,hasPrev,hasNext)).join('')+emptyHTML+
-    '</div>'+
-    '<button class="add-card-btn" data-col="'+col.id+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Adicionar tarefa</button>';
+    col.cards.map(c=>buildCardHTML(c,isDone,hasPrev,hasNext)).join('')+ // Cards
+    '<button class="add-card-btn" data-col="'+col.id+'">'+
+    (isEmpty 
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>' 
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>') +
+    ' Adicionar tarefa</button>'+ // Button
+    '</div>'; // Close cards-area
 
 // DnD centralizado: initDragDropArea desativado aqui para evitar duplicidade com js/dragdrop.js
 // initDragDropArea(el.querySelector('.cards-area'), state, render);
@@ -381,8 +385,6 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     openConfirm(msg,()=>{state.columns=state.columns.filter(c=>c.id!==col.id);saveMetadata();render();showToast('🗑️ Coluna excluida.');});
   });
   el.querySelector('.add-card-btn').addEventListener('click',()=>openCardModal(col.id,null,state));
-  const emptyBtn=el.querySelector('.btn-empty-create');
-  if(emptyBtn)emptyBtn.addEventListener('click',()=>openCardModal(col.id,null,state));
   return el;
 }
 
@@ -500,10 +502,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Parallax sutil para a grade das colunas vazias
+  // Parallax sutil e Faíscas para colunas vazias
   document.getElementById('board')?.addEventListener('mousemove', e => {
     const col = e.target.closest('.column');
-    if (col && col.querySelector('.column-empty-state')) {
+    if (col && col.classList.contains('column-is-empty')) {
       const rect = col.getBoundingClientRect();
       const mouseX = (e.clientX - rect.left);
       const mouseY = (e.clientY - rect.top);
@@ -513,6 +515,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       col.style.setProperty('--mouse-y', `${mouseY}px`);
       col.style.setProperty('--grid-x', `${x}px`);
       col.style.setProperty('--grid-y', `${y}px`);
+
+      // Dispara faíscas (limitado por tempo para performance)
+      const now = Date.now();
+      if (!col._lastSpark || now - col._lastSpark > 100) {
+        window.DragDrop.createSparkEffect(col, e.clientX, e.clientY);
+        col._lastSpark = now;
+      }
     }
   });
 

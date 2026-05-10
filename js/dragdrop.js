@@ -371,7 +371,7 @@ function initAllDragDrop(state, renderFn) {
 }
 
 // Exposição para o app.js chamar depois do render
-window.DragDrop = { initAllDragDrop };
+window.DragDrop = { initAllDragDrop, createSparkEffect };
 
 /**
  * Fallback para mobile: long-press + arrasto manual
@@ -612,5 +612,3 @@ function initTouchDnDFallback(boardEl, state, renderFn) {
     teardown();
   });
 }
-
-
