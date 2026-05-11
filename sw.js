@@ -46,11 +46,18 @@ if (workbox) {
       ],
     })
   );
+
+  // Configura uma página de fallback para quando o usuário estiver offline
+  // Certifique-se de que 'offline.html' está incluído no precache.
+  workbox.recipes.offlineFallback({
+    pageFallback: '/offline.html',
+  });
 }
 
 // Instalação
 self.addEventListener('install', event => {
-  self.skipWaiting(); 
+  // Removido o skipWaiting automático para permitir que a UI controle a atualização.
+  console.log('Novo Service Worker instalado e aguardando...');
 });
 
 // Handler de Fetch: Essencial para estabilidade e funcionamento Offline

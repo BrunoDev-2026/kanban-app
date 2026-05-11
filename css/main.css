@@ -43,7 +43,7 @@
   --transition: all 0.2s var(--ease);
 
   --col-width:  290px;
-  --header-h:   62px;
+  --header-h:   84px;
 
   --font-display: sans-serif;
   --font-body:    sans-serif;
@@ -159,14 +159,15 @@ body::before {
 
 /* ── Botão Adicionar Coluna (Azul) ── */
 #addColumnBtn {
-  background-color: var(--accent) !important;
+  background: linear-gradient(135deg, #2563EB, #3b82f6) !important;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 24px;
   border-radius: var(--radius-sm);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
 }
 #addColumnBtn:hover {
   background-color: var(--accent-light) !important;
@@ -209,17 +210,18 @@ body::before {
 .app-header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  min-height: 84px; /* Altura aumentada para layout panorâmico */
+  height: var(--header-h);
   height: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 40px; /* Padding aumentado para respiro conforme prompt */
+  padding: 0 40px;
   z-index: 100;
-  background: var(--header-bg); /* Agora variável */
-  backdrop-filter: blur(10px); /* Blur especificado no prompt */
+  background: #121212;
+  background-image: radial-gradient(circle at top right, rgba(0, 255, 255, 0.05), transparent 400px);
+  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--header-border);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
   gap: 24px;
 }
 
@@ -237,6 +239,7 @@ body::before {
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
   flex-shrink: 0;
 }
 
@@ -261,7 +264,7 @@ body::before {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centraliza o título */
+  justify-content: flex-start;
   gap: 15px;
   min-width: 0;
   padding: 0;
@@ -291,7 +294,7 @@ body::before {
 }
 .user-avatar-wrapper:hover { transform: scale(1.1); }
 .user-avatar {
-  width: 44px; /* Maior conforme solicitado */
+  width: 44px;
   height: 44px;
   border-radius: 50%;
   background: var(--accent);
@@ -302,7 +305,7 @@ body::before {
   font-family: var(--font-display);
   font-size: 14px;
   color: #fff;
-  border: 2px solid var(--glass-border-active);
+  border: 2px solid #00ffff;
   transition: transform 0.2s var(--ease);
 }
 
@@ -627,11 +630,12 @@ body::before {
 .search-wrapper {
   display: flex;
   align-items: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 16px;
   gap: 8px;
+  width: 280px;
   transition: var(--transition);
 }
 .search-wrapper:focus-within {
