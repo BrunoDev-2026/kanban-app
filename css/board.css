@@ -276,8 +276,7 @@
 }
 
 /* Dispara o desfoque progressivo ao trocar de tema */
-body.theme-dark .card,
-body.theme-light .card {
+body.theme-dark .card {
   animation: cardThemeBlur 0.5s var(--ease);
 }
 
@@ -332,11 +331,6 @@ body.theme-neon .card:hover {
 .card-priority-bar.low    { background: var(--accent3); box-shadow: 2px 0 8px rgba(16, 185, 129, 0.2); }
 .card-priority-bar.medium { background: var(--accent-amber); box-shadow: 2px 0 8px rgba(245, 158, 11, 0.2); }
 .card-priority-bar.high   { background: var(--accent2); box-shadow: 2px 0 8px rgba(239, 68, 68, 0.2); }
-
-/* No modo claro, as barras ficam mais sólidas */
-body.theme-light .card-priority-bar {
-  opacity: 0.8;
-}
 
 /* ── Card Content ── */
 .card-title {

@@ -73,10 +73,6 @@ body {
    TEMAS VISUAIS — 5 identidades únicas
 ══════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════
-   TEMAS VISUAIS — Dark / Light
-══════════════════════════════════════════ */
-
 /* 👔 Professional (Dark Mode - Padrão) */
 body.theme-dark {
   background:
@@ -91,65 +87,6 @@ body.theme-dark {
   --footer-bg:    linear-gradient(to top, rgba(11, 11, 24, 0.9), transparent);
   --title-color:  #ffffff;
   --dropdown-bg:  rgba(18, 18, 34, 0.98);
-}
-
-/* ☀️ Light Mode */
-body.theme-light {
-  background: #F6F8FA; /* Branco gelo */
-  --bg-base:        #F6F8FA;
-  --bg-deep:        #FFFFFF; /* Branco puro */
-  --text-primary:   #1F2328; /* Cinza quase preto */
-  --text-secondary: #475569; /* Mantido para contraste */
-  --text-muted:     #94a3b8; /* Mantido para contraste */
-  --accent:         #0969DA; /* Azul corporativo vibrante */
-  --accent-light:   #0969DA; /* Usando o mesmo azul para consistência */
-  --dropdown-bg:    #ffffff;
-  --glass-bg:       rgba(255, 255, 255, 0.9); /* Mais opaco */
-  --glass-bg-hover: rgba(0, 0, 0, 0.03); /* Suave */
-  --glass-border:   #D0D7DE; /* Cinza claro */
-  --glass-border-active: #A0AEC0; /* Um pouco mais escuro para ativo */
-  --card-bg:        #FFFFFF; /* Branco puro */
-  --card-border:    #D0D7DE; /* Cinza claro */
-  --card-hover-bg:  #F8FAFC; /* Quase branco */
-  --shadow-card:    0 4px 12px rgba(0, 0, 0, 0.05);
-  --shadow-col:     0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-glow:    0 0 20px rgba(9, 105, 218, 0.1); /* Ajustado para o novo azul */
-  --shadow-modal:   0 10px 30px rgba(0, 0, 0, 0.1);
-  --header-bg:      rgba(255, 255, 255, 0.98); /* Quase opaco */
-  --header-border:  #D0D7DE; /* Cinza claro */
-  --footer-bg:      linear-gradient(to top, #E2E8F0, transparent); /* Gradiente suave */
-  --title-color:    #1F2328; /* Cinza quase preto */
-}
-
-/* 🌸 Focus Mode Pastel (Light Variation) */
-body.theme-light.focus-mode-active {
-  background: #fdfcfb; /* Fundo creme pálido */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --text-primary: #334155;
-  --accent: #94a3b8; /* Cores mais neutras para foco */
-  --card-bg: #ffffff;
-}
-
-body.theme-light.focus-mode-active .column {
-  background: #f8fafc;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Melhoria de contraste para Tags no Modo Claro */
-body.theme-light .card-tag {
-  filter: brightness(0.8); /* Escurece a tag para melhor leitura no fundo claro */
-  font-weight: 700;
-}
-
-body.theme-light::before {
-  opacity: 0.15;
-}
-
-/* 🏢 Regra para o logotipo no tema Business (Versão Clara) */
-body.theme-business .app-logo {
-  content: url('../assets/logo/logo-light.png');
-  filter: none; /* Remove o drop-shadow neon azul do modo dark */
 }
 
 /* ── Noise overlay (textura premium) ── */
@@ -282,7 +219,7 @@ body::before {
 
 /* ── Header: Center ── */
 .header-center {
-  flex: 1;
+  flex: 0 1 auto; /* Ocupa apenas o necessário para o título */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -297,7 +234,8 @@ body::before {
   flex-direction: row !important; /* Força alinhamento horizontal */
   align-items: center;
   gap: 15px; /* Espaçamento ideal entre busca e botão */
-  flex-shrink: 0;
+  flex: 1; /* Permite que este grupo cresça para ocupar o centro */
+  justify-content: flex-end;
 }
 
 .header-actions-row {
@@ -656,24 +594,24 @@ body::before {
   text-transform: uppercase;
 }
 
-/* ── Search & Filters ── */
 .search-wrapper {
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  padding: 6px 16px;
+  padding: 0 14px;
   gap: 8px;
-  width: auto;
-  min-width: 180px;
-  max-width: 220px;
+  display: flex;
+  align-items: center;
+  flex: 1; /* Cresce dinamicamente */
+  max-width: 600px; /* Limite para não ficar excessivamente larga */
   height: 35px;
-  transition: max-width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+  transition: flex 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease, border-color 0.3s;
   order: 2; /* Barra de busca fica centralizada entre o botão +coluna e as ações */
 }
 .search-wrapper:focus-within {
-  max-width: 450px;
+  max-width: 700px; /* Expansão sutil ao focar */
   border-color: #00ffff;
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.1);
   background: rgba(0, 255, 255, 0.03);
@@ -684,9 +622,11 @@ body::before {
   border: none;
   color: var(--text-primary);
   font-size: 13px;
-  padding: 6px 0;
+  padding: 0;
+  flex: 1;
+  height: 28px;
   outline: none;
-  width: 140px;
+  line-height: 28px;
 }
 #priorityFilter {
   background: none;
@@ -715,9 +655,6 @@ body::before {
   filter: invert(1);
   opacity: 0.6;
   cursor: pointer;
-}
-body.theme-light #exactDateFilter::-webkit-calendar-picker-indicator {
-  filter: invert(0);
 }
 
 /* ── Dropdown ── */
