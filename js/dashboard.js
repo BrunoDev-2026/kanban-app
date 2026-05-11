@@ -62,6 +62,9 @@ function drawDashboardUI(m, state, container) {
 
   container.innerHTML = `
     <div class="dashboard-header-actions">
+      <button class="btn-icon btn-ghost" id="shareMetricsBtn" title="Compartilhar produtividade">
+        <i data-lucide="share-2"></i> Compartilhar
+      </button>
       <button class="btn-icon btn-ghost" id="syncMetricsBtn" title="Atualizar métricas agora">
         <i data-lucide="refresh-cw"></i> Sincronizar
       </button>
@@ -93,6 +96,27 @@ function drawDashboardUI(m, state, container) {
   document.getElementById('syncMetricsBtn').addEventListener('click', () => {
     renderDashboard(state, container);
     showToast('🔄 Métricas atualizadas!');
+  });
+
+  document.getElementById('shareMetricsBtn')?.addEventListener('click', () => {
+    const text = `📊 *Resumo de Produtividade - KanFlow*\n\n` +
+                 `✅ Concluídas: ${m.completed}\n` +
+                 `🔥 Produtividade: ${m.productivity}%\n` +
+                 `⏰ Foco Total: ${(m.totalFocus / 3600).toFixed(1)}h\n\n` +
+                 `Confira meu quadro no KanFlow! 🚀`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Minha Produtividade no KanFlow',
+        text: text,
+        url: window.location.href
+      }).then(() => showToast('📤 Compartilhado com sucesso!'))
+        .catch(() => {}); // Cancelado pelo usuário
+    } else {
+      // Fallback: Copiar para área de transferência
+      navigator.clipboard.writeText(text + "\n" + window.location.href);
+      showToast('📋 Resumo copiado para a área de transferência!');
+    }
   });
 
   lucide.createIcons();

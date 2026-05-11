@@ -137,6 +137,21 @@ async function processOutbox() {
       }, 100);
 
       try {
+        // --- RESOLUÇÃO DE CONFLITOS ---
+        // Busca a versão atual das tarefas para comparar timestamps
+        const latestTasks = await window.API.fetchTarefas();
+        const serverTask = latestTasks.find(t => String(t.id || t._id) === String(op.id));
+
+        // --- RESOLUÇÃO DE CONFLITOS: CLIENT WINS (Última alteração local prevalece) ---
+        // Compara o timestamp da operação local (op.ts) com o updatedAt do servidor.
+        // Se o servidor tiver uma versão mais nova, a alteração local ainda será aplicada,
+        // mas um aviso será registrado.
+        if (serverTask && serverTask.updatedAt && new Date(serverTask.updatedAt).getTime() > op.ts) {
+          const serverTime = new Date(serverTask.updatedAt).getTime();
+          console.warn(`[Sync] Conflito detectado para ${op.id}. Servidor (${new Date(serverTime).toISOString()}) é mais novo que a operação local (${new Date(op.ts).toISOString()}), mas a alteração local será aplicada (Client Wins).`);
+          saveSyncLog(op, 'conflict-client-wins', `Servidor é mais recente, mas a alteração local foi aplicada.`);
+        }
+
         if (op.method === 'PUT') {
           await window.API.updateTarefa(op.id, op.payload);
         } else if (op.method === 'DELETE') {
@@ -203,8 +218,13 @@ function updateSyncIndicator(status, count, detail = '') {
   if (!el) return;
 
   // Atualiza o botão de contagem de operações pendentes
-  if (pendingCountSpan) pendingCountSpan.textContent = count || 0;
-  if (pendingBtn) pendingBtn.style.display = (count > 0) ? 'inline-flex' : 'none';
+  if (pendingCountSpan) {
+    pendingCountSpan.textContent = count || 0;
+  }
+  if (pendingBtn) {
+    pendingBtn.style.display = (count > 0) ? 'inline-flex' : 'none';
+    pendingBtn.classList.toggle('pulse-warning', count > 0);
+  }
 
   el.classList.remove('sync-pending', 'sync-loading', 'sync-done');
 

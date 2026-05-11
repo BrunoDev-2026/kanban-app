@@ -64,7 +64,8 @@ function buildColumnsFromAPI(tarefas, savedCols) {
       tags:           Array.isArray(t.tags)      ? t.tags      : [],
       checklist:      Array.isArray(t.checklist) ? t.checklist : [],
       totalFocusTime: t.totalFocusTime || 0,
-      createdAt:      t.createdAt      || new Date().toISOString()
+      createdAt:      t.createdAt      || new Date().toISOString(),
+      updatedAt:      t.updatedAt      || t.createdAt || new Date().toISOString()
     });
   });
   return cols;
