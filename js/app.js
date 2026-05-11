@@ -228,7 +228,9 @@ function applyTheme(name) {
 if (typeof toggleView === 'function') {
   window.toggleView = toggleView;
 }
-window.toggleTheme = toggleTheme;
+if (typeof toggleTheme === 'function') {
+  window.toggleTheme = toggleTheme;
+}
 
 /* ════════ POMODORO ════════ */
 let activeFocusCardId=null, pomodoroInterval=null, tabFlashInterval=null;
@@ -492,7 +494,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     applyTheme(loadTheme());
 
-    document.getElementById('themeToggleBtn')?.addEventListener('click', toggleTheme);
+const _themeBtn = document.getElementById('themeToggleBtn');
+    if (typeof toggleTheme === 'function' && _themeBtn) {
+      _themeBtn.addEventListener('click', toggleTheme);
+    }
 
     initFilters(state,appFilters,render);
     initShortcuts(state, render, openCardModal, saveMetadata, undo, redo, appFilters, toggleView, openColumnModal);
