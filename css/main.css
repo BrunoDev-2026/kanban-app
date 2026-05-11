@@ -95,30 +95,30 @@ body.theme-dark {
 
 /* ☀️ Light Mode */
 body.theme-light {
-  background: #f1f5f9;
-  --bg-base:        #f1f5f9;
-  --bg-deep:        #ffffff;
-  --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
-  --accent:         #2563eb;
-  --accent-light:   #3b82f6;
+  background: #F6F8FA; /* Branco gelo */
+  --bg-base:        #F6F8FA;
+  --bg-deep:        #FFFFFF; /* Branco puro */
+  --text-primary:   #1F2328; /* Cinza quase preto */
+  --text-secondary: #475569; /* Mantido para contraste */
+  --text-muted:     #94a3b8; /* Mantido para contraste */
+  --accent:         #0969DA; /* Azul corporativo vibrante */
+  --accent-light:   #0969DA; /* Usando o mesmo azul para consistência */
   --dropdown-bg:    #ffffff;
-  --glass-bg:       rgba(255, 255, 255, 0.85);
-  --glass-bg-hover: rgba(0, 0, 0, 0.04);
-  --glass-border:   rgba(15, 23, 42, 0.1);
-  --glass-border-active: #cbd5e1;
-  --card-bg:        #ffffff;
-  --card-border:    #e2e8f0;
-  --card-hover-bg:  #f8fafc;
+  --glass-bg:       rgba(255, 255, 255, 0.9); /* Mais opaco */
+  --glass-bg-hover: rgba(0, 0, 0, 0.03); /* Suave */
+  --glass-border:   #D0D7DE; /* Cinza claro */
+  --glass-border-active: #A0AEC0; /* Um pouco mais escuro para ativo */
+  --card-bg:        #FFFFFF; /* Branco puro */
+  --card-border:    #D0D7DE; /* Cinza claro */
+  --card-hover-bg:  #F8FAFC; /* Quase branco */
   --shadow-card:    0 4px 12px rgba(0, 0, 0, 0.05);
   --shadow-col:     0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-glow:    0 0 20px rgba(37, 99, 235, 0.1);
+  --shadow-glow:    0 0 20px rgba(9, 105, 218, 0.1); /* Ajustado para o novo azul */
   --shadow-modal:   0 10px 30px rgba(0, 0, 0, 0.1);
-  --header-bg:      rgba(255, 255, 255, 0.95);
-  --header-border:  rgba(15, 23, 42, 0.12);
-  --footer-bg:      linear-gradient(to top, #e2e8f0, transparent);
-  --title-color:    #0f172a;
+  --header-bg:      rgba(255, 255, 255, 0.98); /* Quase opaco */
+  --header-border:  #D0D7DE; /* Cinza claro */
+  --footer-bg:      linear-gradient(to top, #E2E8F0, transparent); /* Gradiente suave */
+  --title-color:    #1F2328; /* Cinza quase preto */
 }
 
 /* 🌸 Focus Mode Pastel (Light Variation) */
@@ -188,6 +188,7 @@ body::before {
   box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  order: 1; /* Posiciona o botão à esquerda no container flex */
 }
 #addColumnBtn:hover {
   background-color: var(--accent-light) !important;
@@ -304,6 +305,15 @@ body::before {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  order: 3; /* Container de ações fica por último no header-right */
+}
+
+#moreActionsBtn {
+  order: 1;
+}
+
+#clearFiltersBtn {
+  order: 2; /* Garante que o limpar filtro fique à direita do botão mais */
 }
 
 /* ── Avatar & Profile ── */
@@ -660,6 +670,7 @@ body::before {
   max-width: 220px;
   height: 35px;
   transition: max-width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+  order: 2; /* Barra de busca fica centralizada entre o botão +coluna e as ações */
 }
 .search-wrapper:focus-within {
   max-width: 450px;
