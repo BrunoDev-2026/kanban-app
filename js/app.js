@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
   document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
-  document.getElementById('toggleViewBtn')?.addEventListener('click',()=>{currentView=currentView==='board'?'list':'board';render();showToast(currentView==='list'?'📋 Lista':'📊 Quadro');});
+  document.getElementById('toggleViewBtn')?.addEventListener('click', toggleView);
   document.getElementById('openArchiveBtn')?.addEventListener('click',openArchiveModal);
   document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
   document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});

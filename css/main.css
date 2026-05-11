@@ -128,10 +128,6 @@ body::before {
   order: 1; /* Posiciona o botão +Coluna como o primeiro item no header-right */
 }
 
-#clearFiltersBtn {
-  order: 2; /* Posiciona o botão Limpar Filtros ao lado de +Coluna */
-  margin-left: 8px; /* Adiciona um pequeno espaçamento */
-}
 #addColumnBtn:hover {
   background-color: var(--accent-light) !important;
   transform: translateY(-1px);

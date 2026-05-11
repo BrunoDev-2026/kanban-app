@@ -12,14 +12,24 @@
  * @param {Function} renderFn - Função de render
  * @param {Function} openCardFn - Função para abrir modal de card
  * @param {Function} saveStateFn - Função de salvar
+ * @param {Object} appFilters - Filtros globais do aplicativo
+ * @param {Function} toggleViewFn - Função para alternar visualização (Quadro/Lista)
+ * @param {Function} openColumnModalFn - Função para abrir modal de coluna
  */
-function initShortcuts(state, renderFn, openCardFn, saveStateFn, undoFn, redoFn) {
+function initShortcuts(state, renderFn, openCardFn, saveStateFn, undoFn, redoFn, appFilters, toggleViewFn, openColumnModalFn) {
 
-  // ESC fecha modais abertos
+  // ESC fecha modais abertos ou limpa filtros se nenhum modal estiver ativo
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      ['columnModal', 'cardModal', 'confirmModal', 'emojiModal', 'archiveModal', 'profileModal']
-        .forEach(id => closeModal(id));
+      const openModal = document.querySelector('.modal-overlay.open');
+      if (openModal) {
+        ['columnModal', 'cardModal', 'confirmModal', 'emojiModal', 'archiveModal', 'profileModal']
+          .forEach(id => closeModal(id));
+      } else if (appFilters && typeof hasActiveFilters === 'function' && hasActiveFilters(appFilters)) {
+        // Se não houver modal aberto e houver filtros ativos, limpa tudo
+        clearFilters(appFilters, renderFn);
+        showShortcutHUD('Filtros Limpos (Esc)');
+      }
     }
   });
 
@@ -49,6 +59,26 @@ function initShortcuts(state, renderFn, openCardFn, saveStateFn, undoFn, redoFn)
           searchInput.focus();
           searchInput.select();
           showShortcutHUD('Busca (F)');
+        }
+        break;
+
+      // Alt + C = Nova Coluna
+      case 'c':
+        if (e.altKey) {
+          e.preventDefault();
+          if (typeof openColumnModalFn === 'function') {
+            openColumnModalFn(null, state);
+            showShortcutHUD('Nova Coluna (Alt+C)');
+          }
+        }
+        break;
+
+      // L = Alternar Visualização (Quadro / Lista)
+      case 'l':
+        e.preventDefault();
+        if (typeof toggleViewFn === 'function') {
+          toggleViewFn();
+          showShortcutHUD('Alternar Vista (L)');
         }
         break;
 
