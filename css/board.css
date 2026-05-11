@@ -59,8 +59,11 @@
   animation: columnIn 0.38s var(--ease-pop) both;
 }
 
-/* ── Estilo para a coluna vazia ── */
 .column.column-is-empty {
+  border: 2px dashed #444; /* Borda pontilhada escura */
+  min-height: 100px;        /* Garante que a coluna não "suma" */
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05); /* Leve fundo para contraste */
 }
 
 /* ── Glow na grade ao arrastar sobre coluna vazia ── */

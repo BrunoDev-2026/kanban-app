@@ -9,14 +9,28 @@ importScripts('/js/config.js');
 // Carrega o Workbox da CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
+// Força o carregamento do módulo de receitas
+workbox.loadModule('workbox-recipes');
+
 if (workbox) {
+  console.log('Workbox carregado com sucesso!');
+
   // Injeta o manifesto de precache (essencial para o Workbox Build funcionar)
   // O placeholder abaixo será preenchido pelo workbox-build-script.js
   workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
 
-  // Configura cache de Google Fonts de forma otimizada
-  // CacheFirst para os arquivos de fonte (.woff2) e StaleWhileRevalidate para o CSS
-  workbox.recipes.googleFonts();
+  // O nome correto da função na v6+ é googleFontsCache
+  // Usamos um pequeno check para garantir que o objeto existe antes de chamar
+  if (workbox.recipes && workbox.recipes.googleFontsCache) {
+    workbox.recipes.googleFontsCache();
+  } else {
+    // Fallback manual caso o módulo demore a carregar via CDN
+    workbox.routing.registerRoute(
+      ({url}) => url.origin === 'https://fonts.googleapis.com' || 
+                 url.origin === 'https://fonts.gstatic.com',
+      new workbox.strategies.StaleWhileRevalidate({ cacheName: 'google-fonts' })
+    );
+  }
 
   // Define estratégia Stale-While-Revalidate para imagens (png, jpg, svg, webp)
   workbox.routing.registerRoute(
