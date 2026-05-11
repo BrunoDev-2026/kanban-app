@@ -125,7 +125,12 @@ body::before {
   box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  order: 1; /* Posiciona o botão à esquerda no container flex */
+  order: 1; /* Posiciona o botão +Coluna como o primeiro item no header-right */
+}
+
+#clearFiltersBtn {
+  order: 2; /* Posiciona o botão Limpar Filtros ao lado de +Coluna */
+  margin-left: 8px; /* Adiciona um pequeno espaçamento */
 }
 #addColumnBtn:hover {
   background-color: var(--accent-light) !important;
@@ -243,15 +248,11 @@ body::before {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  order: 3; /* Container de ações fica por último no header-right */
+  order: 4; /* Container de ações fica por último no header-right */
 }
 
 #moreActionsBtn {
   order: 1;
-}
-
-#clearFiltersBtn {
-  order: 2; /* Garante que o limpar filtro fique à direita do botão mais */
 }
 
 /* ── Avatar & Profile ── */
@@ -608,7 +609,7 @@ body::before {
   max-width: 600px; /* Limite para não ficar excessivamente larga */
   height: 35px;
   transition: flex 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease, border-color 0.3s;
-  order: 2; /* Barra de busca fica centralizada entre o botão +coluna e as ações */
+  order: 3; /* Barra de busca fica centralizada entre o botão +coluna e as ações */
 }
 .search-wrapper:focus-within {
   max-width: 700px; /* Expansão sutil ao focar */
