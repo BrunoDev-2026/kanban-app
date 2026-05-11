@@ -95,30 +95,45 @@ body.theme-dark {
 
 /* ☀️ Light Mode */
 body.theme-light {
-  background: #f8fafc;
-  --bg-base:        #f8fafc;
+  background: #f1f5f9;
+  --bg-base:        #f1f5f9;
   --bg-deep:        #ffffff;
-  --text-primary:   #000000; /* Fonte preta no modo claro */
-  --text-secondary: #222222;
-  --text-muted:     #444444;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
   --accent:         #2563eb;
   --accent-light:   #3b82f6;
   --dropdown-bg:    #ffffff;
-  --glass-bg:       rgba(255, 255, 255, 0.9);
-  --glass-bg-hover: rgba(0, 0, 0, 0.03);
-  --glass-border:   rgba(0, 0, 0, 0.1);
+  --glass-bg:       rgba(255, 255, 255, 0.85);
+  --glass-bg-hover: rgba(0, 0, 0, 0.04);
+  --glass-border:   rgba(15, 23, 42, 0.1);
   --glass-border-active: #cbd5e1;
   --card-bg:        #ffffff;
   --card-border:    #e2e8f0;
   --card-hover-bg:  #f8fafc;
   --shadow-card:    0 4px 12px rgba(0, 0, 0, 0.05);
-  --shadow-col:     0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-col:     0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-glow:    0 0 20px rgba(37, 99, 235, 0.1);
   --shadow-modal:   0 10px 30px rgba(0, 0, 0, 0.1);
-  --header-bg:      rgba(255, 255, 255, 0.9);
-  --header-border:  rgba(0, 0, 0, 0.08);
-  --footer-bg:      linear-gradient(to top, #f1f5f9, transparent);
-  --title-color:    #000000; /* Título preto no modo claro */
+  --header-bg:      rgba(255, 255, 255, 0.95);
+  --header-border:  rgba(15, 23, 42, 0.12);
+  --footer-bg:      linear-gradient(to top, #e2e8f0, transparent);
+  --title-color:    #0f172a;
+}
+
+/* 🌸 Focus Mode Pastel (Light Variation) */
+body.theme-light.focus-mode-active {
+  background: #fdfcfb; /* Fundo creme pálido */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --text-primary: #334155;
+  --accent: #94a3b8; /* Cores mais neutras para foco */
+  --card-bg: #ffffff;
+}
+
+body.theme-light.focus-mode-active .column {
+  background: #f8fafc;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Melhoria de contraste para Tags no Modo Claro */
@@ -278,9 +293,9 @@ body::before {
 /* ── Header: Right ── */
 .header-right {
   display: flex;
-  flex-direction: row;
+  flex-direction: row !important; /* Força alinhamento horizontal */
   align-items: center;
-  gap: 12px;
+  gap: 15px; /* Espaçamento ideal entre busca e botão */
   flex-shrink: 0;
 }
 
@@ -640,12 +655,14 @@ body::before {
   border-radius: 20px;
   padding: 6px 16px;
   gap: 8px;
-  width: 100%;
-  max-width: 280px;
+  width: auto;
+  min-width: 180px;
+  max-width: 220px;
   height: 35px;
-  transition: var(--transition);
+  transition: max-width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
 }
 .search-wrapper:focus-within {
+  max-width: 450px;
   border-color: #00ffff;
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.1);
   background: rgba(0, 255, 255, 0.03);

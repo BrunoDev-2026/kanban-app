@@ -590,11 +590,25 @@ body.theme-light #themeToggleBtn .lucide {
 /* ══════════════════════════════════════════
    MODO FOCO (EXPANDIDO)
 ══════════════════════════════════════════ */
-body.focus-mode-active .app-header,
-body.focus-mode-active .board,
-body.focus-mode-active #dashboardSection,
-body.focus-mode-active .app-footer {
+body.focus-mode-active:not(.theme-light) .app-header,
+body.focus-mode-active:not(.theme-light) .board,
+body.focus-mode-active #dashboardSection, 
+body.focus-mode-active .app-footer,
+body.focus-mode-active .header-right,
+body.focus-mode-active .header-left .user-avatar-wrapper {
   display: none !important;
+}
+
+/* No modo Light Focus, escondemos apenas o necessário para ver o Kanban */
+body.theme-light.focus-mode-active .app-header {
+  background: transparent;
+  border-bottom: none;
+  justify-content: center;
+  pointer-events: none;
+}
+
+body.theme-light.focus-mode-active .header-center {
+  pointer-events: auto;
 }
 
 body.focus-mode-active .board-container {

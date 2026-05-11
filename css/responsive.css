@@ -44,11 +44,12 @@
   }
 
   .header-right {
-    gap: 8px;
+    gap: 12px;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-end; /* Mantém as ações alinhadas à direita */
     order: 3;
-    flex-wrap: nowrap; /* Impede que o botão e a busca quebrem linha entre si */
+    flex-wrap: nowrap;
+    padding-top: 5px;
   }
 
   .header-left {

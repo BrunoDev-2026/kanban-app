@@ -226,7 +226,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  min-height: 64px;
+  min-height: 400px; /* Garante área de drop mesmo em colunas vazias */
   flex: 1;
 }
 
@@ -497,6 +497,25 @@ body.theme-light .card-priority-bar {
 .card-btn.delete:hover {
   color: var(--accent2);
   background: rgba(239, 68, 68, 0.12);
+}
+
+/* ── SortableJS States ── */
+
+/* O card que fica "vazio" no lugar (Efeito Fantasma) */
+.sortable-ghost {
+  opacity: 0.4;
+  border: 2px dashed #00ffff !important;
+  background: rgba(0, 255, 255, 0.1) !important;
+}
+
+/* O card enquanto está sendo segurado */
+.sortable-chosen {
+  transform: rotate(3deg) !important;
+  cursor: grabbing !important;
+}
+
+.sortable-drag {
+  opacity: 1 !important;
 }
 
 
