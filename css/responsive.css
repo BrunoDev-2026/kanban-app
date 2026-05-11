@@ -34,8 +34,33 @@
   .btn-ghost {
     padding: 7px 10px;
   }
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 20px;
+    gap: 12px;
+    /* Garante que o header fixo não "trema" ao rolar */
+    transform: translateZ(0); 
+  }
+
   .header-right {
-    gap: 4px;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+    order: 3;
+    flex-wrap: nowrap; /* Impede que o botão e a busca quebrem linha entre si */
+  }
+
+  .header-left {
+    order: 1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-center {
+    width: 100%;
+    justify-content: center;
+    order: 2;
   }
 
   /* Dashboard em 2 colunas no tablet */
@@ -56,13 +81,13 @@
 
   .app-header {
     padding: 0 14px;
-    gap: 8px;
+    gap: 12px;
   }
 
   .board-container {
     padding-left: 14px;
     padding-right: 14px;
-    padding-top: calc(var(--header-h) + 18px);
+    padding-top: 160px;
   }
 
   .board { gap: 14px; }
@@ -95,7 +120,14 @@
   }
 
   /* Search menor no mobile */
-  #searchInput { width: 100px; }
+  .search-wrapper {
+    width: 100%;
+    max-width: 320px;
+    justify-content: flex-start;
+  }
+  #searchInput { flex: 1; min-width: 60px; }
+  #priorityFilter, .date-filter-wrapper { display: none; }
+  #clearFiltersBtn { padding: 4px; }
 
   /* Dropdown full-width no mobile */
   .dropdown-content {
