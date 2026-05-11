@@ -225,7 +225,9 @@ function applyTheme(name) {
   if (typeof saveTheme === 'function') saveTheme(name);
 }
 // Expondo funções globais para garantir acessibilidade
-window.toggleView = toggleView;
+if (typeof toggleView === 'function') {
+  window.toggleView = toggleView;
+}
 window.toggleTheme = toggleTheme;
 
 /* ════════ POMODORO ════════ */
