@@ -307,28 +307,52 @@ const EMOJI_LIST=['💡','🌟','✨','✅','🎉','📝','📌','🗓️','📊
 function buildCardHTML(card,isDone,hasPrev,hasNext){
   const ds=getDeadlineStatus(card.date,isDone);
   const isFocus=activeFocusCardId===card.id;
-  let badge='';
-  if(ds==='overdue')   badge='<span class="card-due-badge overdue">🔴 Atrasada</span>';
-  if(ds==='due-today') badge='<span class="card-due-badge due-today">⚠️ Hoje</span>';
-  if(ds==='due-soon')  badge='<span class="card-due-badge due-soon">⏰ '+getDaysDiff(card.date)+'d</span>';
-  const dateStr=card.date?'<span class="card-date">📅 '+formatDate(card.date)+'</span>':'<span></span>';
-  const total=(card.checklist||[]).length, done=(card.checklist||[]).filter(i=>i.completed).length;
-  const chk=total>0?'<div class="card-checklist-progress"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'+done+'/'+total+'</div>':'';
-  const cls=['card',ds==='overdue'?'card-overdue':'',(ds==='due-soon'||ds==='due-today')?'card-due-soon':'',isFocus?'is-focusing':''].filter(Boolean).join(' ');
-  return '<div class="'+cls+'" draggable="true" data-card-id="'+card.id+'" role="listitem" aria-label="'+escapeHtml(card.title)+'">'+
-    '<div class="card-priority-bar '+card.priority+'" aria-hidden="true"></div>'+
-    '<div class="card-title">'+escapeHtml(card.title)+'</div>'+
-    '<div class="card-tags">'+buildTagsHTML(card.tags)+' '+badge+'</div>'+
-    chk+(card.desc?'<div class="card-desc">'+escapeHtml(card.desc)+'</div>':'')+
-    '<div class="card-footer">'+dateStr+
-    '<div class="card-actions">'+
-    (hasPrev?'<button class="card-btn prev-col" data-card="'+card.id+'" title="Anterior"><i data-lucide="chevron-left" size="14"></i></button>':'')+
-    '<button class="card-btn edit"    data-card="'+card.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
-    '<button class="card-btn focus"   data-card="'+card.id+'" title="Foco"><i data-lucide="play" size="14"></i></button>'+
-    '<button class="card-btn archive" data-card="'+card.id+'" title="Arquivar"><i data-lucide="archive" size="14"></i></button>'+
-    '<button class="card-btn delete"  data-card="'+card.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
-    (hasNext?'<button class="card-btn next-col" data-card="'+card.id+'" title="Proximo"><i data-lucide="chevron-right" size="14"></i></button>':'')+
-    '</div></div></div>';
+
+  const badges = {
+    'overdue':   '<span class="card-due-badge overdue">🔴 Atrasada</span>',
+    'due-today': '<span class="card-due-badge due-today">⚠️ Hoje</span>',
+    'due-soon':  `<span class="card-due-badge due-soon">⏰ ${getDaysDiff(card.date)}d</span>`
+  };
+  const badge = badges[ds] || '';
+
+  const dateStr = card.date ? `<span class="card-date">📅 ${formatDate(card.date)}</span>` : '<span></span>';
+  
+  const checklist = card.checklist || [];
+  const total = checklist.length;
+  const done = checklist.filter(i => i.completed).length;
+  const chk = total > 0 ? `
+    <div class="card-checklist-progress">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>${done}/${total}
+    </div>` : '';
+
+  const cls = [
+    'card',
+    ds === 'overdue' ? 'card-overdue' : '',
+    (ds === 'due-soon' || ds === 'due-today') ? 'card-due-soon' : '',
+    isFocus ? 'is-focusing' : ''
+  ].filter(Boolean).join(' ');
+
+  return `
+    <div class="${cls}" draggable="true" data-card-id="${card.id}" role="listitem" aria-label="${escapeHtml(card.title)}">
+      <div class="card-priority-bar ${card.priority}" aria-hidden="true"></div>
+      <div class="card-title">${escapeHtml(card.title)}</div>
+      <div class="card-tags">${buildTagsHTML(card.tags)} ${badge}</div>
+      ${chk}
+      ${card.desc ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
+      <div class="card-footer">
+        ${dateStr}
+        <div class="card-actions">
+          ${hasPrev ? `<button class="card-btn prev-col" data-card="${card.id}" title="Anterior"><i data-lucide="chevron-left" size="14"></i></button>` : ''}
+          <button class="card-btn edit"    data-card="${card.id}" title="Editar"><i data-lucide="pencil" size="14"></i></button>
+          <button class="card-btn focus"   data-card="${card.id}" title="Foco"><i data-lucide="play" size="14"></i></button>
+          <button class="card-btn archive" data-card="${card.id}" title="Arquivar"><i data-lucide="archive" size="14"></i></button>
+          <button class="card-btn delete"  data-card="${card.id}" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>
+          ${hasNext ? `<button class="card-btn next-col" data-card="${card.id}" title="Próximo"><i data-lucide="chevron-right" size="14"></i></button>` : ''}
+        </div>
+      </div>
+    </div>`;
 }
 
 /* ════════ COLUNA HTML ════════ */
@@ -460,20 +484,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   applyTheme(loadTheme());
 
-  document.getElementById('themeToggleBtn')?.addEventListener('click',()=>{
-    const novo=document.body.classList.contains('theme-light')?'theme-dark':'theme-light';
-    applyTheme(novo);showToast(novo==='theme-light'?'☀️ Modo claro':'🌙 Modo escuro');
-  });
+  document.getElementById('themeToggleBtn')?.addEventListener('click', toggleTheme);
 
   initFilters(state,appFilters,render);
-  initShortcuts(state,render,openCardModal,saveMetadata,undo,redo);
+  initShortcuts(state, render, openCardModal, saveMetadata, undo, redo, appFilters, toggleView, openColumnModal);
   initTasksEvents(state,render,cardId=>{if(activeFocusCardId===cardId)stopPomodoro();});
 
   document.getElementById('userProfileTrigger')?.addEventListener('click',()=>openProfileModal(state));
   document.getElementById('saveProfileBtn')?.addEventListener('click',()=>saveProfile(state));
   document.getElementById('closeProfileModal')?.addEventListener('click',()=>closeModal('profileModal'));
 
-  document.getElementById('toggleDashboardBtn')?.addEventListener('click',()=>{
+  document.getElementById('toggleDashboardBtn')?.addEventListener('click',() => {
     showDashboard=!showDashboard;state.lastView=showDashboard?'dashboard':'board';saveMetadata();
     if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));render();
   });
@@ -481,7 +502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
   document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
   document.getElementById('toggleViewBtn')?.addEventListener('click', toggleView);
-  document.getElementById('openArchiveBtn')?.addEventListener('click',openArchiveModal);
+  document.getElementById('openArchiveBtn')?.addEventListener('click', openArchiveModal);
   document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
   document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});
   document.getElementById('emergencyResetBtn')?.addEventListener('click', () => { if (typeof emergencyReset === 'function') emergencyReset(); });
