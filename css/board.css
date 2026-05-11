@@ -112,7 +112,7 @@
   height: 4px;
   opacity: 1;
   border-radius: 0;
-  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 15px currentColor, 0 1px 10px rgba(0, 0, 0, 0.3);
 }
 
 .column-title-wrap {
@@ -367,7 +367,22 @@ body.theme-light .card-priority-bar {
   white-space: nowrap;
   transition: var(--transition);
   cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+.card-tag::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
 .card-tag:hover {
   transform: scale(1.1);
   filter: brightness(1.15);

@@ -159,15 +159,20 @@ body::before {
 
 /* ── Botão Adicionar Coluna (Azul) ── */
 #addColumnBtn {
-  background: linear-gradient(135deg, #2563EB, #3b82f6) !important;
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%) !important;
   color: white;
   border: none;
-  padding: 10px 24px;
+  padding: 0 20px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--radius-sm);
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 #addColumnBtn:hover {
   background-color: var(--accent-light) !important;
