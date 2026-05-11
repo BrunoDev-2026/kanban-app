@@ -500,8 +500,13 @@ const _themeBtn = document.getElementById('themeToggleBtn');
     }
 
     initFilters(state,appFilters,render);
-    initShortcuts(state, render, openCardModal, saveMetadata, undo, redo, appFilters, toggleView, openColumnModal);
+
+    const safeToggleView = (typeof toggleView === 'function')
+      ? toggleView
+      : () => {};
+
     initTasksEvents(state,render,cardId=>{if(activeFocusCardId===cardId)stopPomodoro();});
+
 
     document.getElementById('userProfileTrigger')?.addEventListener('click',()=>openProfileModal(state));
     document.getElementById('saveProfileBtn')?.addEventListener('click',()=>saveProfile(state));
@@ -514,7 +519,10 @@ const _themeBtn = document.getElementById('themeToggleBtn');
 
     document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
     document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
-    document.getElementById('toggleViewBtn')?.addEventListener('click', toggleView);
+    const _toggleViewBtn = document.getElementById('toggleViewBtn');
+    if (_toggleViewBtn && typeof safeToggleView === 'function') {
+      _toggleViewBtn.addEventListener('click', safeToggleView);
+    }
     document.getElementById('openArchiveBtn')?.addEventListener('click', openArchiveModal);
     document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
     document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});
