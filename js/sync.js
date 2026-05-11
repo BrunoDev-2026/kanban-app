@@ -148,8 +148,15 @@ async function processOutbox() {
         // mas um aviso será registrado.
         if (serverTask && serverTask.updatedAt && new Date(serverTask.updatedAt).getTime() > op.ts) {
           const serverTime = new Date(serverTask.updatedAt).getTime();
-          console.warn(`[Sync] Conflito detectado para ${op.id}. Servidor (${new Date(serverTime).toISOString()}) é mais novo que a operação local (${new Date(op.ts).toISOString()}), mas a alteração local será aplicada (Client Wins).`);
-          saveSyncLog(op, 'conflict-client-wins', `Servidor é mais recente, mas a alteração local foi aplicada.`);
+          
+          // Marca o card no estado global com os dados do conflito
+          const col = state.columns.find(c => c.cards.some(k => k.id === op.id));
+          const card = col?.cards.find(k => k.id === op.id);
+          if (card) {
+            card.conflict = { serverVersion: serverTask, localTimestamp: op.ts };
+            if (typeof saveMetadata === 'function') saveMetadata();
+          }
+          saveSyncLog(op, 'conflict-detected', `Conflito em ${op.id}. Aguardando revisão manual.`);
         }
 
         if (op.method === 'PUT') {
@@ -253,7 +260,7 @@ window.Sync = {
   processOutbox: processOutbox, 
   getOutbox: getOutbox,
   clearQueue: () => {
-    isSyncing = false;
+    isSyncing = false; // Garante que o estado de sincronização seja resetado
     clearTimeout(syncTimer);
     setOutbox([]);
     updateSyncIndicator('synced', 0);
@@ -261,7 +268,7 @@ window.Sync = {
   },
   clearLogs: () => {
     localStorage.removeItem(LOG_KEY);
-    console.log('🧹 Logs de sincronização limpos.');
+    showToast('🧹 Logs de sincronização limpos!');
   },
   showLogs: () => {
     const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');

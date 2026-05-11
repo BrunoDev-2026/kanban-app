@@ -190,3 +190,21 @@
     justify-content: center;
     width: 100%;
 }
+
+.conflict-dashboard-list {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.conflict-dashboard-list li {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.status-dot.conflict-detected { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+.status-dot.conflict-resolved { background: var(--accent3); }
+.conflict-dashboard-list p { font-size: 12px; margin: 0; color: var(--text-primary); }
+.conflict-dashboard-list small { font-size: 10px; color: var(--text-muted); }

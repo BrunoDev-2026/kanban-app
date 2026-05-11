@@ -60,6 +60,27 @@ function drawDashboardUI(m, state, container) {
   }
   charts = {};
 
+  // Recupera logs de conflito
+  const logs = JSON.parse(localStorage.getItem('kanflow_sync_logs') || '[]');
+  const conflictLogs = logs.filter(l => l.status.includes('conflict')).slice(0, 4);
+
+  let logsHTML = '';
+  if (conflictLogs.length > 0) {
+    logsHTML = `
+      <div class="chart-container glass conflict-log-container">
+        <h3><i data-lucide="history"></i> Conflitos Recentes</h3>
+        <ul class="conflict-dashboard-list">
+          ${conflictLogs.map(log => `
+            <li>
+              <span class="status-dot ${log.status}"></span>
+              <div><p>${log.error || 'Conflito detectado'}</p><small>${new Date(log.ts).toLocaleTimeString()}</small></div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     <div class="dashboard-header-actions">
       <button class="btn-icon btn-ghost" id="shareMetricsBtn" title="Compartilhar produtividade">
@@ -67,6 +88,9 @@ function drawDashboardUI(m, state, container) {
       </button>
       <button class="btn-icon btn-ghost" id="syncMetricsBtn" title="Atualizar métricas agora">
         <i data-lucide="refresh-cw"></i> Sincronizar
+      </button>
+      <button class="btn-icon btn-ghost" id="clearConflictLogsBtn" title="Limpar histórico de conflitos">
+        <i data-lucide="history"></i> Limpar Logs
       </button>
     </div>
     <div class="dashboard-premium-grid fade-in">
@@ -88,6 +112,7 @@ function drawDashboardUI(m, state, container) {
           <span class="prod-value">${m.productivity}%</span>
         </div>
       </div>
+      ${logsHTML}
     </div>
     <div class="dashboard-footer">Atualizado em tempo real</div>
   `;
@@ -117,6 +142,11 @@ function drawDashboardUI(m, state, container) {
       navigator.clipboard.writeText(text + "\n" + window.location.href);
       showToast('📋 Resumo copiado para a área de transferência!');
     }
+  });
+
+  document.getElementById('clearConflictLogsBtn')?.addEventListener('click', () => {
+    window.Sync.clearLogs();
+    renderDashboard(state, container); // Re-renderiza o dashboard para atualizar a lista de logs
   });
 
   lucide.createIcons();

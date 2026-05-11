@@ -224,6 +224,9 @@ function applyTheme(name) {
   document.body.className = themeClass;
   if (typeof saveTheme === 'function') saveTheme(name);
 }
+// Expondo funções globais para garantir acessibilidade
+window.toggleView = toggleView;
+window.toggleTheme = toggleTheme;
 
 /* ════════ POMODORO ════════ */
 let activeFocusCardId=null, pomodoroInterval=null, tabFlashInterval=null;
@@ -335,12 +338,14 @@ function buildCardHTML(card,isDone,hasPrev,hasNext){
     isFocus ? 'is-focusing' : ''
   ].filter(Boolean).join(' ');
 
+  const conflictBtn = card.conflict ? `<button class="card-btn resolve-conflict pulse-warning" data-card="${card.id}" title="Conflito de Sincronização"><i data-lucide="alert-triangle" size="14" style="color:var(--accent-amber)"></i></button>` : '';
+
   return `
     <div class="${cls}" draggable="true" data-card-id="${card.id}" role="listitem" aria-label="${escapeHtml(card.title)}">
       <div class="card-priority-bar ${card.priority}" aria-hidden="true"></div>
       <div class="card-title">${escapeHtml(card.title)}</div>
       <div class="card-tags">${buildTagsHTML(card.tags)} ${badge}</div>
-      ${chk}
+      <div style="display:flex; align-items:center; gap:8px;">${chk} ${conflictBtn}</div>
       ${card.desc ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
       <div class="card-footer">
         ${dateStr}
@@ -482,156 +487,169 @@ function openArchiveModal(){
 
 /* ════════ INICIALIZACAO ════════ */
 document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    applyTheme(loadTheme());
 
-  applyTheme(loadTheme());
+    document.getElementById('themeToggleBtn')?.addEventListener('click', toggleTheme);
 
-  document.getElementById('themeToggleBtn')?.addEventListener('click', toggleTheme);
+    initFilters(state,appFilters,render);
+    initShortcuts(state, render, openCardModal, saveMetadata, undo, redo, appFilters, toggleView, openColumnModal);
+    initTasksEvents(state,render,cardId=>{if(activeFocusCardId===cardId)stopPomodoro();});
 
-  initFilters(state,appFilters,render);
-  initShortcuts(state, render, openCardModal, saveMetadata, undo, redo, appFilters, toggleView, openColumnModal);
-  initTasksEvents(state,render,cardId=>{if(activeFocusCardId===cardId)stopPomodoro();});
+    document.getElementById('userProfileTrigger')?.addEventListener('click',()=>openProfileModal(state));
+    document.getElementById('saveProfileBtn')?.addEventListener('click',()=>saveProfile(state));
+    document.getElementById('closeProfileModal')?.addEventListener('click',()=>closeModal('profileModal'));
 
-  document.getElementById('userProfileTrigger')?.addEventListener('click',()=>openProfileModal(state));
-  document.getElementById('saveProfileBtn')?.addEventListener('click',()=>saveProfile(state));
-  document.getElementById('closeProfileModal')?.addEventListener('click',()=>closeModal('profileModal'));
+    document.getElementById('toggleDashboardBtn')?.addEventListener('click',() => {
+      showDashboard=!showDashboard;state.lastView=showDashboard?'dashboard':'board';saveMetadata();
+      if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));render();
+    });
 
-  document.getElementById('toggleDashboardBtn')?.addEventListener('click',() => {
-    showDashboard=!showDashboard;state.lastView=showDashboard?'dashboard':'board';saveMetadata();
-    if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));render();
-  });
+    document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
+    document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
+    document.getElementById('toggleViewBtn')?.addEventListener('click', toggleView);
+    document.getElementById('openArchiveBtn')?.addEventListener('click', openArchiveModal);
+    document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
+    document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});
+    document.getElementById('emergencyResetBtn')?.addEventListener('click', () => { if (typeof emergencyReset === 'function') emergencyReset(); });
+    document.getElementById('clearBoardBtn')?.addEventListener('click',()=>openConfirm('Limpar todo o quadro?',()=>{state.columns=[];saveMetadata();render();showToast('🧹 Quadro limpo!');} ));
+    document.getElementById('exportBoardBtn')?.addEventListener('click',()=>{
+      try{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mb-flowboard-'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('💾 Exportado!');}catch{showToast('❌ Erro ao exportar.');}
+    });
+    document.getElementById('printBoardBtn')?.addEventListener('click',()=>{showToast('🖨️ Preparando...');setTimeout(()=>window.print(),300);});
+    document.getElementById('moreActionsBtn')?.addEventListener('click',e=>{e.stopPropagation();document.getElementById('moreDropdown').classList.toggle('open');});
+    window.addEventListener('click',()=>document.getElementById('moreDropdown')?.classList.remove('open'));
+    document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
+    document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
 
-  document.getElementById('boardTitleDisplay')?.addEventListener('click',activateTitleEdit);
-  document.getElementById('boardTitleDisplay')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activateTitleEdit();}});
-  document.getElementById('toggleViewBtn')?.addEventListener('click', toggleView);
-  document.getElementById('openArchiveBtn')?.addEventListener('click', openArchiveModal);
-  document.getElementById('closeArchiveModal')?.addEventListener('click',()=>closeModal('archiveModal'));
-  document.getElementById('clearArchiveBtn')?.addEventListener('click',()=>{if(!state.archived.length)return;openConfirm('Excluir todas as tarefas arquivadas?',()=>{state.archived=[];saveMetadata();openArchiveModal();showToast('🧹 Arquivo limpo!');});});
-  document.getElementById('emergencyResetBtn')?.addEventListener('click', () => { if (typeof emergencyReset === 'function') emergencyReset(); });
-  document.getElementById('clearBoardBtn')?.addEventListener('click',()=>openConfirm('Limpar todo o quadro?',()=>{state.columns=[];saveMetadata();render();showToast('🧹 Quadro limpo!');} ));
-  document.getElementById('exportBoardBtn')?.addEventListener('click',()=>{
-    try{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mb-flowboard-'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('💾 Exportado!');}catch{showToast('❌ Erro ao exportar.');}
-  });
-  document.getElementById('printBoardBtn')?.addEventListener('click',()=>{showToast('🖨️ Preparando...');setTimeout(()=>window.print(),300);});
-  document.getElementById('moreActionsBtn')?.addEventListener('click',e=>{e.stopPropagation();document.getElementById('moreDropdown').classList.toggle('open');});
-  window.addEventListener('click',()=>document.getElementById('moreDropdown')?.classList.remove('open'));
-  document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
-  document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
-
-  // Som de clique global nos botões
-  document.addEventListener('click', e => {
-    if (e.target.closest('button') || e.target.closest('.btn-icon') || e.target.closest('.col-btn') || e.target.closest('.card-btn')) {
-      playMelody('click');
-    }
-  });
-
-  // Parallax sutil e Faíscas para colunas vazias
-  document.getElementById('board')?.addEventListener('mousemove', e => {
-    const col = e.target.closest('.column');
-    if (col && col.classList.contains('column-is-empty')) {
-      const rect = col.getBoundingClientRect();
-      const mouseX = (e.clientX - rect.left);
-      const mouseY = (e.clientY - rect.top);
-      const x = mouseX / 15;
-      const y = mouseY / 15;
-      col.style.setProperty('--mouse-x', `${mouseX}px`);
-      col.style.setProperty('--mouse-y', `${mouseY}px`);
-      col.style.setProperty('--grid-x', `${x}px`);
-      col.style.setProperty('--grid-y', `${y}px`);
-
-      // Dispara faíscas (limitado por tempo para performance)
-      const now = Date.now();
-      if (!col._lastSpark || now - col._lastSpark > 100) {
-        window.DragDrop.createSparkEffect(col, e.clientX, e.clientY);
-        col._lastSpark = now;
+    // Som de clique global nos botões
+    document.addEventListener('click', e => {
+      if (e.target.closest('button') || e.target.closest('.btn-icon') || e.target.closest('.col-btn') || e.target.closest('.card-btn')) {
+        playMelody('click');
       }
-    }
-  });
+    });
 
-  window.addEventListener('online',()=>{
-    const ind=document.getElementById('offlineIndicator');
-    if(ind)ind.style.display='none';
-    showToast('🌐 Conexao restaurada!');
-    window.Sync.processOutbox().then(()=>{window.API.fetchTarefas().then(t=>{state.columns=buildColumnsFromAPI(t,state.columns);saveMetadata();render();});});
-  });
-  window.addEventListener('offline',()=>{const ind=document.getElementById('offlineIndicator');if(ind)ind.style.display='flex';showToast('📴 Sem conexao.');});
+    // Parallax sutil e Faíscas para colunas vazias
+    document.getElementById('board')?.addEventListener('mousemove', e => {
+      const col = e.target.closest('.column');
+      if (col && col.classList.contains('column-is-empty')) {
+        const rect = col.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left);
+        const mouseY = (e.clientY - rect.top);
+        const x = mouseX / 15;
+        const y = mouseY / 15;
+        col.style.setProperty('--mouse-x', `${mouseX}px`);
+        col.style.setProperty('--mouse-y', `${mouseY}px`);
+        col.style.setProperty('--grid-x', `${x}px`);
+        col.style.setProperty('--grid-y', `${y}px`);
 
-  // Delegacao de eventos do board
-  document.getElementById('board').addEventListener('click', async e => {
-    const focBtn=e.target.closest('.card-btn.focus');
-    if(focBtn){togglePomodoro(focBtn.dataset.card);return;}
-
-    const editBtn=e.target.closest('.card-btn.edit');
-    if(editBtn){const col=state.columns.find(c=>c.cards.some(k=>k.id===editBtn.dataset.card));if(col)openCardModal(col.id,editBtn.dataset.card,state);return;}
-
-    // ── EXCLUIR ──
-    const delBtn=e.target.closest('.card-btn.delete');
-    if(delBtn){
-      const cardId=delBtn.dataset.card;
-      const col=state.columns.find(c=>c.cards.some(k=>k.id===cardId));
-      const card=col?.cards.find(k=>k.id===cardId);
-      if(!col || !card || !cardId) return;
-
-      openConfirm('Excluir "'+card.title+'"?',()=>{
-        const ki=col.cards.findIndex(k=>k.id===cardId);
-        if (ki === -1) return; // Evita remover o último item se o ID não for encontrado
-
-        col.cards.splice(ki,1);
-        if(activeFocusCardId===cardId)stopPomodoro();
-        saveMetadata(); render();
-        window.Sync.enqueue({method:'DELETE',id:cardId});
-        showToast('🗑️ Tarefa excluida!');
-      });
-      return;
-    }
-
-    // ── MOVER → ──
-    const nextBtn=e.target.closest('.card-btn.next-col');
-    if(nextBtn){
-      const cardId=nextBtn.dataset.card;
-      const ci=state.columns.findIndex(c=>c.cards.some(k=>k.id===cardId));
-      if(ci>=0&&ci<state.columns.length-1){
-        const destTitle=state.columns[ci+1].title;
-        const ki=state.columns[ci].cards.findIndex(k=>k.id===cardId);
-        const[card]=state.columns[ci].cards.splice(ki,1);
-        state.columns[ci+1].cards.push(card);
-        saveMetadata();render();
-        window.Sync.enqueue({method:'PUT',id:cardId,payload:{titulo:card.title,coluna:destTitle,desc:card.desc||'',date:card.date||'',tags:Array.isArray(card.tags)?card.tags:[],priority:card.priority||'low',checklist:Array.isArray(card.checklist)?card.checklist:[]}});
-        showToast('➡️ Avancou para '+destTitle+'!');
+        // Dispara faíscas (limitado por tempo para performance)
+        const now = Date.now();
+        if (!col._lastSpark || now - col._lastSpark > 100) {
+          window.DragDrop.createSparkEffect(col, e.clientX, e.clientY);
+          col._lastSpark = now;
+        }
       }
-      return;
-    }
+    });
 
-    // ── MOVER ← ──
-    const prevBtn=e.target.closest('.card-btn.prev-col');
-    if(prevBtn){
-      const cardId=prevBtn.dataset.card;
-      const ci=state.columns.findIndex(c=>c.cards.some(k=>k.id===cardId));
-      if(ci>0){
-        const destTitle=state.columns[ci-1].title;
-        const ki=state.columns[ci].cards.findIndex(k=>k.id===cardId);
-        const[card]=state.columns[ci].cards.splice(ki,1);
-        state.columns[ci-1].cards.push(card);
-        saveMetadata();render();
-        window.Sync.enqueue({method:'PUT',id:cardId,payload:{titulo:card.title,coluna:destTitle,desc:card.desc||'',date:card.date||'',tags:Array.isArray(card.tags)?card.tags:[],priority:card.priority||'low',checklist:Array.isArray(card.checklist)?card.checklist:[]}});
-        showToast('⬅️ Voltou para '+destTitle+'!');
+    window.addEventListener('online',()=>{
+      const ind=document.getElementById('offlineIndicator');
+      if(ind)ind.style.display='none';
+      showToast('🌐 Conexao restaurada!');
+      window.Sync.processOutbox().then(()=>{window.API.fetchTarefas().then(t=>{state.columns=buildColumnsFromAPI(t,state.columns);saveMetadata();render();});});
+    });
+    window.addEventListener('offline',()=>{const ind=document.getElementById('offlineIndicator');if(ind)ind.style.display='flex';showToast('📴 Sem conexao.');});
+
+    // Delegacao de eventos do board
+    document.getElementById('board').addEventListener('click', async e => {
+      const focBtn=e.target.closest('.card-btn.focus');
+      
+      // ── RESOLVER CONFLITO ──
+      const conflictBtn = e.target.closest('.card-btn.resolve-conflict');
+      if (conflictBtn) {
+        const cardId = conflictBtn.dataset.card;
+        if (typeof openMergeModal === 'function') openMergeModal(cardId, state, render);
+        return;
       }
-      return;
-    }
 
-    // ── ARQUIVAR ──
-    const arcBtn=e.target.closest('.card-btn.archive');
-    if(arcBtn){
-      const cardId=arcBtn.dataset.card;
-      const cardEl=arcBtn.closest('.card');
-      const col=state.columns.find(c=>c.cards.some(k=>k.id===cardId));
-      if(!col)return;
-      cardEl.classList.add('card-exit');
-      setTimeout(()=>archiveCard(col.id,cardId,state,render,stopPomodoro),280);
-    }
-  });
+      if(focBtn){togglePomodoro(focBtn.dataset.card);return;}
 
-  // Inicia o app
-  await initApp();
+      const editBtn=e.target.closest('.card-btn.edit');
+      if(editBtn){const col=state.columns.find(c=>c.cards.some(k=>k.id===editBtn.dataset.card));if(col)openCardModal(col.id,editBtn.dataset.card,state);return;}
 
-  startDashboardAutoRefresh(()=>{if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));});
+      // ── EXCLUIR ──
+      const delBtn=e.target.closest('.card-btn.delete');
+      if(delBtn){
+        const cardId=delBtn.dataset.card;
+        const col=state.columns.find(c=>c.cards.some(k=>k.id===cardId));
+        const card=col?.cards.find(k=>k.id===cardId);
+        if(!col || !card || !cardId) return;
+
+        openConfirm('Excluir "'+card.title+'"?',()=>{
+          const ki=col.cards.findIndex(k=>k.id===cardId);
+          if (ki === -1) return; // Evita remover o último item se o ID não for encontrado
+
+          col.cards.splice(ki,1);
+          if(activeFocusCardId===cardId)stopPomodoro();
+          saveMetadata(); render();
+          window.Sync.enqueue({method:'DELETE',id:cardId});
+          showToast('🗑️ Tarefa excluida!');
+        });
+        return;
+      }
+
+      // ── MOVER → ──
+      const nextBtn=e.target.closest('.card-btn.next-col');
+      if(nextBtn){
+        const cardId=nextBtn.dataset.card;
+        const ci=state.columns.findIndex(c=>c.cards.some(k=>k.id===cardId));
+        if(ci>=0&&ci<state.columns.length-1){
+          const destTitle=state.columns[ci+1].title;
+          const ki=state.columns[ci].cards.findIndex(k=>k.id===cardId);
+          const[card]=state.columns[ci].cards.splice(ki,1);
+          state.columns[ci+1].cards.push(card);
+          saveMetadata();render();
+          window.Sync.enqueue({method:'PUT',id:cardId,payload:{titulo:card.title,coluna:destTitle,desc:card.desc||'',date:card.date||'',tags:Array.isArray(card.tags)?card.tags:[],priority:card.priority||'low',checklist:Array.isArray(card.checklist)?card.checklist:[]}});
+          showToast('➡️ Avancou para '+destTitle+'!');
+        }
+        return;
+      }
+
+      // ── MOVER ← ──
+      const prevBtn=e.target.closest('.card-btn.prev-col');
+      if(prevBtn){
+        const cardId=prevBtn.dataset.card;
+        const ci=state.columns.findIndex(c=>c.cards.some(k=>k.id===cardId));
+        if(ci>0){
+          const destTitle=state.columns[ci-1].title;
+          const ki=state.columns[ci].cards.findIndex(k=>k.id===cardId);
+          const[card]=state.columns[ci].cards.splice(ki,1);
+          state.columns[ci-1].cards.push(card);
+          saveMetadata();render();
+          window.Sync.enqueue({method:'PUT',id:cardId,payload:{titulo:card.title,coluna:destTitle,desc:card.desc||'',date:card.date||'',tags:Array.isArray(card.tags)?card.tags:[],priority:card.priority||'low',checklist:Array.isArray(card.checklist)?card.checklist:[]}});
+          showToast('⬅️ Voltou para '+destTitle+'!');
+        }
+        return;
+      }
+
+      // ── ARQUIVAR ──
+      const arcBtn=e.target.closest('.card-btn.archive');
+      if(arcBtn){
+        const cardId=arcBtn.dataset.card;
+        const cardEl=arcBtn.closest('.card');
+        const col=state.columns.find(c=>c.cards.some(k=>k.id===cardId));
+        if(!col)return;
+        cardEl.classList.add('card-exit');
+        setTimeout(()=>archiveCard(col.id,cardId,state,render,stopPomodoro),280);
+      }
+    });
+
+    // Inicia o app
+    await initApp();
+
+    startDashboardAutoRefresh(()=>{if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));});
+  } catch (error) {
+    console.error("❌ Erro crítico ao inicializar o aplicativo:", error);
+    showToast('❌ Ocorreu um erro ao carregar o aplicativo. Tente recarregar a página.');
+  }
 });

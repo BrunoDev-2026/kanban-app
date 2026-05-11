@@ -47,6 +47,53 @@ function openCardModal(colId, cardId = null, state) {
   setTimeout(() => document.getElementById('cardTitleInput').focus(), 120);
 }
 
+/**
+ * Abre a interface de comparação para resolver conflitos
+ */
+function openMergeModal(cardId, state, renderFn) {
+  const col = state.columns.find(c => c.cards.some(k => k.id === cardId));
+  const card = col?.cards.find(k => k.id === cardId);
+  if (!card || !card.conflict) return;
+
+  const server = card.conflict.serverVersion;
+  // Para uma mesclagem mais granular, você precisaria de um "ancestral comum"
+  // e uma UI que permita ao usuário escolher campo a campo.
+  // Por enquanto, destacamos as diferenças e o usuário escolhe a versão completa.
+  const titleDiff = card.title !== (server.titulo || '');
+  const descDiff = (card.desc || '') !== (server.desc || '');
+
+  const msg = `
+    <div class="merge-comparison">
+      <div class="merge-column">
+        <strong>Sua Versão (Local)</strong>
+        <p class="${titleDiff ? 'diff-highlight' : ''}">${escapeHtml(card.title || '')}</p>
+        <small class="${descDiff ? 'diff-highlight' : ''}">${escapeHtml(card.desc || 'Sem descrição')}</small>
+        <button class="add-card-btn" id="keepLocal">Manter Minha Versão</button>
+      </div>
+      <div class="merge-divider">VS</div>
+      <div class="merge-column">
+        <strong>Versão do Servidor</strong>
+        <p class="${titleDiff ? 'diff-highlight' : ''}">${escapeHtml(server.titulo || '')}</p>
+        <small class="${descDiff ? 'diff-highlight' : ''}">${escapeHtml(server.desc || 'Sem descrição')}</small>
+        <button class="add-card-btn" id="useServer" style="background:var(--accent3); border-color:var(--accent3)">Usar do Servidor</button>
+      </div>
+    </div>
+  `;
+
+  openConfirm(msg, null); // Usamos o confirmModal como base
+  
+  document.getElementById('keepLocal').onclick = () => {
+    delete card.conflict;
+    saveState(state); renderFn(); closeModal('confirmModal');
+  };
+  document.getElementById('useServer').onclick = () => {
+    card.title = server.titulo; card.desc = server.desc;
+    card.priority = server.priority; card.tags = server.tags;
+    delete card.conflict;
+    saveState(state); renderFn(); closeModal('confirmModal');
+  };
+}
+
 // ==================== SALVAR (criar/editar) ====================
 async function saveCard(state, renderFn) {
   const title = sanitizeInput(document.getElementById('cardTitleInput').value, 80);
