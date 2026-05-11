@@ -43,7 +43,7 @@
   --transition: all 0.2s var(--ease);
 
   --col-width:  290px;
-  --header-h:   84px;
+  --header-h:   80px;
 
   --font-display: sans-serif;
   --font-body:    sans-serif;
@@ -215,7 +215,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 20px;
   z-index: 100;
   background: #121212;
   background-image: radial-gradient(circle at top right, rgba(0, 255, 255, 0.05), transparent 400px);
@@ -239,7 +239,7 @@ body::before {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 15px;
   flex-shrink: 0;
 }
 
@@ -636,7 +636,10 @@ body::before {
   padding: 6px 16px;
   gap: 8px;
   width: 280px;
+  height: 35px;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
 }
 .search-wrapper:focus-within {
   border-color: var(--accent);

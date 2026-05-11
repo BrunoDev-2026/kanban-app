@@ -7,10 +7,7 @@
 .board-container {
   position: relative;
   z-index: 1;
-  padding-top: calc(var(--header-h) + 45px + 1cm);
-  padding-bottom: 48px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: calc(var(--header-h) + 30px) 20px 48px 20px;
   min-height: 100vh;
   overflow-x: hidden; /* Evita scroll lateral quebrado */
 }
@@ -18,7 +15,7 @@
 .board {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
+  gap: 20px;
   min-width: max-content;
   padding-bottom: 24px;
 }
