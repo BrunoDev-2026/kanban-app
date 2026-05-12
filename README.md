@@ -1,11 +1,12 @@
 # MB FlowBoard
 
 <p align="center">
-  <img src="assets/logo/logo.png" alt="MB FlowBoard Logo" width="220" />
+  <img src="assets/logo/Fluxograma.png" alt="MB FlowBoard — Visão Geral do Projeto" width="100%" />
 </p>
 
 <p align="center">
-  <strong>Quadro Kanban pessoal, PWA offline-first, com drag & drop, métricas, foco Pomodoro e sincronização automática.</strong>
+  <strong>Quadro Kanban pessoal, PWA offline-first, com arrastar e soltar, análises, foco Pomodoro e sincronização automática.</strong><br/>
+  <em>Seu quadro pessoal. Seu fluxo. Sua produtividade.</em>
 </p>
 
 <p align="center">
@@ -13,6 +14,7 @@
   <img src="https://img.shields.io/badge/PWA-offline--first-43D9AD?style=flat-square" />
   <img src="https://img.shields.io/badge/JS-Vanilla%20Modular-FFB347?style=flat-square" />
   <img src="https://img.shields.io/badge/deploy-Render-4FC3F7?style=flat-square" />
+  <img src="https://img.shields.io/badge/projeto-em%20evolução-6C63FF?style=flat-square" />
 </p>
 
 ---
