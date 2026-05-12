@@ -696,6 +696,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     startDashboardAutoRefresh(()=>{if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));});
+
+    // Ajusta padding-top do board-container de acordo com a altura real do header
+    function syncHeaderHeight() {
+      const header = document.querySelector('.app-header');
+      const board  = document.querySelector('.board-container');
+      if (!header || !board) return;
+      const h = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--header-h', h + 'px');
+      board.style.paddingTop = (h + 12) + 'px';
+    }
+    syncHeaderHeight();
+    window.addEventListener('resize', syncHeaderHeight);
   } catch (error) {
     console.error("❌ Erro crítico ao inicializar o aplicativo:", error);
     showToast('❌ Ocorreu um erro ao carregar o aplicativo. Tente recarregar a página.');

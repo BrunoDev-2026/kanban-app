@@ -22,7 +22,8 @@ const PRECACHE_ASSETS = [
   '/js/notifications.js', '/js/tags.js', '/js/filters.js',
   '/js/metrics-logic.js', '/js/dashboard.js', '/js/dragdrop.js',
   '/js/avatar.js', '/js/shortcuts.js', '/js/tasks.js',
-  '/js/app.js', '/js/config.js', '/manifest.json'
+  '/js/app.js', '/js/config.js', '/manifest.json',
+  '/assets/logo/Logo.png'
 ];
 
 
