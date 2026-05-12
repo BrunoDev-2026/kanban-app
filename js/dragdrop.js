@@ -53,7 +53,7 @@ function onDragEnd(e) {
   removeGhost();
 
   document.querySelectorAll('.column').forEach(c => {
-    c.classList.remove('drag-over');
+    c.classList.remove('drag-over', 'drag-over-low', 'drag-over-medium', 'drag-over-high');
   });
   dragCardPriority = null;
 }
@@ -69,6 +69,9 @@ function onDragOver(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.classList.contains('drag-over')) {
     col.classList.add('drag-over');
+    if (dragCardPriority) {
+      col.classList.add(`drag-over-${dragCardPriority}`);
+    }
     if (col.querySelector('.column-empty-state')) playMelody('magnetic', dragCardPriority);
   }
 
@@ -133,7 +136,7 @@ function createSparkEffect(parent, mouseX, mouseY) {
 function onDragLeave(e) {
   const col = e.currentTarget.closest('.column');
   if (col && !col.contains(e.relatedTarget)) {
-    col.classList.remove('drag-over');
+    col.classList.remove('drag-over', 'drag-over-low', 'drag-over-medium', 'drag-over-high');
     removeGhost();
   }
 }
@@ -150,7 +153,7 @@ function onDrop(e, state, renderFn) {
   if (!targetColEl) return;
 
   const targetColId = targetColEl.dataset.colId;
-  targetColEl.classList.remove('drag-over');
+  targetColEl.classList.remove('drag-over', 'drag-over-low', 'drag-over-medium', 'drag-over-high');
   removeGhost();
 
   // Detecta se a coluna estava vazia antes do processamento

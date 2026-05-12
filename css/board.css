@@ -7,7 +7,7 @@
 .board-container {
   position: relative;
   z-index: 1;
-  padding: calc(var(--header-h) + 12px) 20px 48px 20px;
+  padding: calc(var(--header-h) + 125px) 20px 48px 20px;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -76,10 +76,14 @@
 }
 
 .column.drag-over {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow), var(--shadow-col);
-  background: rgba(37, 99, 235, 0.07);
+  background: rgba(37, 99, 235, 0.12);
+  animation: columnDragPulse 1.5s infinite ease-in-out;
+  transform: scale(1.01) translateY(-2px);
 }
+
+.column.drag-over-low { --drag-color: var(--accent3); --drag-color-light: #34d399; background: rgba(16, 185, 129, 0.12); }
+.column.drag-over-medium { --drag-color: var(--accent-amber); --drag-color-light: #fbbf24; background: rgba(245, 158, 11, 0.12); }
+.column.drag-over-high { --drag-color: var(--accent2); --drag-color-light: #f87171; background: rgba(239, 68, 68, 0.12); }
 
 /* ── Progress Bar (WIP) ── */
 .column-progress-container {

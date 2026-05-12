@@ -280,3 +280,15 @@
   animation: counterPulse 2s infinite ease-in-out;
   border-color: var(--accent-amber) !important;
 }
+
+/* ── Brilho de Reflexo no Header ── */
+@keyframes headerReflection {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Glow Pulsante para Arraste sobre Coluna ── */
+@keyframes columnDragPulse {
+  0%, 100% { border-color: var(--drag-color, var(--accent)); box-shadow: 0 0 10px var(--drag-color, var(--accent)), var(--shadow-glow); }
+  50% { border-color: var(--drag-color-light, var(--accent-light)); box-shadow: 0 0 25px var(--drag-color-light, var(--accent-light)), var(--shadow-glow); }
+}
