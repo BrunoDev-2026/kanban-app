@@ -7,9 +7,9 @@
 .board-container {
   position: relative;
   z-index: 1;
-  padding: calc(var(--header-h) + 30px) 20px 48px 20px;
+  padding: calc(var(--header-h) + 12px) 20px 48px 20px;
   min-height: 100vh;
-  overflow-x: hidden; /* Evita scroll lateral quebrado */
+  overflow-x: hidden;
 }
 
 .board {
