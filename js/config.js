@@ -1,13 +1,12 @@
 /**
  * MB FLOWBOARD — js/config.js
- * Configurações globais compartilhadas entre App e Service Worker
+ * Configurações globais compartilhadas
  */
-const APP_VERSION = '{{VERSION}}';
-const CACHE_NAME = `kanban-${APP_VERSION}`;
+const APP_VERSION = '2.0.0';
+const BUILD_TS    = Date.now(); // Timestamp único por sessão
+const CACHE_NAME  = `kanban-${APP_VERSION}-${BUILD_TS}`;
 
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/main.css',
-  '/js/app.js'
-];
+// Expõe versão no SW via global
+if (typeof self !== 'undefined' && self.constructor && self.constructor.name === 'ServiceWorkerGlobalScope') {
+  self.__CACHE_VERSION = `${APP_VERSION}-${BUILD_TS}`;
+}

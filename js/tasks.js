@@ -84,13 +84,15 @@ function openMergeModal(cardId, state, renderFn) {
   
   document.getElementById('keepLocal').onclick = () => {
     delete card.conflict;
-    saveState(state); renderFn(); closeModal('confirmModal');
+    if (typeof saveMetadata === 'function') saveMetadata(); else if (typeof saveState === 'function') saveState(state);
+    renderFn(); closeModal('confirmModal');
   };
   document.getElementById('useServer').onclick = () => {
     card.title = server.titulo; card.desc = server.desc;
     card.priority = server.priority; card.tags = server.tags;
     delete card.conflict;
-    saveState(state); renderFn(); closeModal('confirmModal');
+    if (typeof saveMetadata === 'function') saveMetadata(); else if (typeof saveState === 'function') saveState(state);
+    renderFn(); closeModal('confirmModal');
   };
 }
 
@@ -264,7 +266,8 @@ function initTasksEvents(state, renderFn, stopPomodoroFn) {
       state.columns.push({ id: uid(), title: name, color, limit, cards: [] });
       showToast('✅ Coluna criada!');
     }
-    saveState(state);
+    if (typeof saveMetadata === 'function') saveMetadata();
+    else if (typeof saveState === 'function') saveState(state);
     renderFn();
     closeModal('columnModal');
   });

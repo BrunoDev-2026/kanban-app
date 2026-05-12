@@ -1,7 +1,22 @@
 /* =============================================
    MB FLOWBOARD — css/responsive.css
-   Media Queries · Tablet · Mobile · Print
+   Media Queries · Breakpoints: 1440 / 1024 / 768 / 520 / 480 / 360
    ============================================= */
+
+/* ══════════════════════════════════════════
+   WIDESCREEN (min-width: 1440px)
+══════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  :root {
+    --col-width: 320px;
+  }
+  .app-header {
+    padding: 0 40px;
+  }
+  .board-container {
+    padding: 0 40px;
+  }
+}
 
 /* ══════════════════════════════════════════
    TABLET (max-width: 1024px)
@@ -131,14 +146,56 @@
   #clearFiltersBtn { padding: 4px; }
 
   /* Dropdown full-width no mobile */
+  .dropdown {
+    position: static;
+  }
   .dropdown-content {
-    right: -60px;
+    right: 0;
+    left: auto;
     min-width: 200px;
+    max-width: calc(100vw - 28px);
+    position: fixed;
+    top: auto;
+    z-index: 9999;
   }
 
   /* Modal full-width no mobile */
   .modal-overlay {
     padding: 12px;
+    align-items: flex-end;
+  }
+  .modal {
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE PEQUENO (max-width: 480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .header-actions-row {
+    gap: 4px;
+  }
+  .board-title {
+    font-size: 13px;
+    max-width: 100px;
+  }
+  /* Cards touch-friendly: min-height para facilitar toque */
+  .card {
+    min-height: 64px;
+  }
+  .card-btn {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px;
+  }
+  /* Pomodoro compacto */
+  .pomodoro-display {
+    font-size: 13px;
+    padding: 4px 8px;
   }
 }
 

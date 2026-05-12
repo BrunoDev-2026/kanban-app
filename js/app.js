@@ -219,18 +219,32 @@ window._revertDelete = function(card, colId) {
 
 /* ════════ THEME ENGINE ════════ */
 function applyTheme(name) {
-  // Simplesmente aplica a classe ao body. O CSS cuida das variáveis.
   const themeClass = (name === 'theme-light' || name === 'theme-dark') ? name : 'theme-dark';
   document.body.className = themeClass;
   if (typeof saveTheme === 'function') saveTheme(name);
 }
-// Expondo funções globais para garantir acessibilidade
-if (typeof toggleView === 'function') {
-  window.toggleView = toggleView;
+
+/**
+ * Alterna entre tema claro e escuro
+ */
+function toggleTheme() {
+  const isDark = document.body.classList.contains('theme-dark');
+  applyTheme(isDark ? 'theme-light' : 'theme-dark');
+  showToast(isDark ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado');
 }
-if (typeof toggleTheme === 'function') {
-  window.toggleTheme = toggleTheme;
+
+/**
+ * Alterna entre visualização de quadro (Kanban) e lista
+ */
+function toggleView() {
+  currentView = (currentView === 'board') ? 'list' : 'board';
+  render();
+  showToast(currentView === 'list' ? '📋 Vista lista ativada' : '🗂️ Vista quadro ativada');
 }
+
+// Exposição global segura (nunca lança ReferenceError)
+window.toggleView  = toggleView;
+window.toggleTheme = toggleTheme;
 
 /* ════════ POMODORO ════════ */
 let activeFocusCardId=null, pomodoroInterval=null, tabFlashInterval=null;
@@ -345,7 +359,7 @@ function buildCardHTML(card,isDone,hasPrev,hasNext){
   const conflictBtn = card.conflict ? `<button class="card-btn resolve-conflict pulse-warning" data-card="${card.id}" title="Conflito de Sincronização"><i data-lucide="alert-triangle" size="14" style="color:var(--accent-amber)"></i></button>` : '';
 
   return `
-    <div class="${cls}" draggable="true" data-card-id="${card.id}" role="listitem" aria-label="${escapeHtml(card.title)}">
+    <div class="${cls}" draggable="true" data-card-id="${card.id}" role="listitem" tabindex="0" aria-label="Tarefa: ${escapeHtml(card.title)}, Prioridade: ${card.priority}">
       <div class="card-priority-bar ${card.priority}" aria-hidden="true"></div>
       <div class="card-title">${escapeHtml(card.title)}</div>
       <div class="card-tags">${buildTagsHTML(card.tags)} ${badge}</div>
@@ -494,16 +508,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     applyTheme(loadTheme());
 
-const _themeBtn = document.getElementById('themeToggleBtn');
-    if (typeof toggleTheme === 'function' && _themeBtn) {
-      _themeBtn.addEventListener('click', toggleTheme);
+    const _themeBtn = document.getElementById('themeToggleBtn');
+    if (_themeBtn) {
+      _themeBtn.addEventListener('click', window.toggleTheme);
     }
 
     initFilters(state,appFilters,render);
 
-    const safeToggleView = (typeof toggleView === 'function')
-      ? toggleView
-      : () => {};
+    const safeToggleView = window.toggleView;
 
     initTasksEvents(state,render,cardId=>{if(activeFocusCardId===cardId)stopPomodoro();});
 
@@ -661,6 +673,27 @@ const _themeBtn = document.getElementById('themeToggleBtn');
 
     // Inicia o app
     await initApp();
+
+    // Atalhos de teclado
+    initShortcuts(
+      state, render,
+      (colId) => openCardModal(colId, null, state),
+      saveState,
+      undo, redo,
+      appFilters,
+      window.toggleView,
+      (colId) => openColumnModal(colId, state)
+    );
+
+    // Aviso de dados não sincronizados ao fechar a aba
+    window.addEventListener('beforeunload', e => {
+      const pending = window.Sync && window.Sync.getOutbox();
+      if (pending && pending.length > 0) {
+        e.preventDefault();
+        e.returnValue = `Você tem ${pending.length} operações não sincronizadas. Fechar agora pode perder dados.`;
+        return e.returnValue;
+      }
+    });
 
     startDashboardAutoRefresh(()=>{if(showDashboard)renderDashboard(state,document.getElementById('dashboardSection'));});
   } catch (error) {
