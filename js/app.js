@@ -418,7 +418,9 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="column-title-wrap"><span class="column-title">'+escapeHtml(col.title)+'</span>'+
     '<span class="column-count">'+col.cards.length+(col.limit>0?' / '+col.limit:'')+'</span></div>'+
     '<div class="column-actions">'+
-    renderAddTaskButton(col.id, true) +
+    '<button class="col-btn add-task" data-col="'+col.id+'" title="Adicionar tarefa" aria-label="Adicionar tarefa">'+
+      '<i data-lucide="plus" size="14"></i>'+
+    '</button>' +
     '<button class="col-btn edit" data-col="'+col.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
     '<button class="col-btn delete" data-col="'+col.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
     '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+
@@ -427,7 +429,12 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="cards-area" data-col-id="'+col.id+'" role="list">'+
     col.cards.map(c=>buildCardHTML(c,isDone,hasPrev,hasNext)).join('')+ // Cards
     '</div>' +
-    '<div style="padding: 0 12px 12px;">' + renderAddTaskButton(col.id, false) + '</div>'; // Close column container
+    '<div style="padding: 0 12px 12px;">' +
+      '<button class="btn-icon btn-accent add-task-button" data-column-id="'+col.id+'" title="Adicionar tarefa">'+
+        '<i data-lucide="plus-circle" size="16"></i>'+
+      '</button>'+
+    '</div>'; // Close column container
+
 
 // DnD centralizado: initDragDropArea desativado aqui para evitar duplicidade com js/dragdrop.js
 // initDragDropArea(el.querySelector('.cards-area'), state, render);
