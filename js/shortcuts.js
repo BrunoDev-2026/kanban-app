@@ -38,16 +38,32 @@ function initShortcuts(state, renderFn, openCardFn, saveStateFn, undoFn, redoFn,
     const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
     if (isInput) return;
 
+    // Atalhos numéricos (1-9) para selecionar coluna quando o menu de tarefa está aberto
+    if (e.key >= '1' && e.key <= '9') {
+      const dropdown = document.getElementById('addGlobalCardDropdown');
+      if (dropdown && dropdown.classList.contains('open')) {
+        const index = parseInt(e.key) - 1;
+        const items = dropdown.querySelectorAll('.dropdown-item');
+        if (items[index]) {
+          e.preventDefault();
+          items[index].click(); // Executa a lógica de seleção da coluna
+          showShortcutHUD(`Coluna ${e.key} selecionada`);
+          return;
+        }
+      }
+    }
+
     switch (e.key.toLowerCase()) {
 
-      // N = Nova Tarefa (na primeira coluna)
+      // N ou Shift+N = Abrir Menu de Nova Tarefa Global
       case 'n':
         e.preventDefault();
-        if (state.columns.length > 0) {
-          openCardFn(state.columns[0].id);
-          showShortcutHUD('Nova Tarefa (N)');
+        const addBtn = document.getElementById('addGlobalCardBtn');
+        if (addBtn) {
+          addBtn.click();
+          showShortcutHUD(e.shiftKey ? 'Nova Tarefa (Shift+N)' : 'Nova Tarefa (N)');
         } else {
-          showToast('⚠️ Crie uma coluna primeiro!');
+          showToast('⚠️ Botão de tarefa não encontrado!');
         }
         break;
 

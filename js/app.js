@@ -547,6 +547,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('moreActionsBtn')?.addEventListener('click',e=>{e.stopPropagation();document.getElementById('moreDropdown').classList.toggle('open');});
     window.addEventListener('click',()=>document.getElementById('moreDropdown')?.classList.remove('open'));
     document.getElementById('stopTimerBtn')?.addEventListener('click',stopPomodoro);
+
+    // Lógica para o Dropdown Global de "Adicionar Tarefa"
+    const addGlobalCardBtn = document.getElementById('addGlobalCardBtn');
+    const addGlobalCardMenu = document.getElementById('addGlobalCardMenu');
+    const addGlobalCardDropdown = document.getElementById('addGlobalCardDropdown');
+
+    if (addGlobalCardBtn && addGlobalCardMenu) {
+      addGlobalCardBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (state.columns.length > 0) {
+          // Popula o menu com as colunas existentes e dicas de atalho numérico
+          addGlobalCardMenu.innerHTML = state.columns.map((col, idx) => `
+            <button class="btn-icon btn-ghost dropdown-item" data-col-id="${col.id}">
+              <span class="status-dot" style="background:${col.color}; width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:8px;"></span>
+              <span style="opacity:0.4; font-size:10px; margin-right:8px; font-family:monospace;">${idx + 1}</span>
+              ${col.title}
+            </button>
+          `).join('');
+          
+          addGlobalCardDropdown.classList.toggle('open');
+        } else {
+          showToast('⚠️ Crie uma coluna primeiro!');
+        }
+      });
+    }
+
+    // Delegar clique nos itens do menu de tarefa global
+    addGlobalCardMenu?.addEventListener('click', (e) => {
+      const item = e.target.closest('.dropdown-item');
+      if (item) {
+        const colId = item.dataset.colId;
+        openCardModal(colId, null, state);
+        addGlobalCardDropdown.classList.remove('open');
+      }
+    });
+
+    // Fechar dropdown ao clicar fora
+    window.addEventListener('click', () => addGlobalCardDropdown?.classList.remove('open'));
+
     document.getElementById('quitFocusBtn')?.addEventListener('click',stopPomodoro);
 
     // Som de clique global nos botões

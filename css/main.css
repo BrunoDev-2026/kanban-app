@@ -133,6 +133,28 @@ body::before {
   transform: translateY(-1px);
 }
 
+/* ── Botão Adicionar Tarefa Global (Azul) ── */
+#addGlobalCardBtn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%) !important;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  order: 2; /* Posiciona o botão +Tarefa após o +Coluna e antes da busca */
+}
+#addGlobalCardBtn:hover {
+  background-color: var(--accent-light) !important;
+  transform: translateY(-1px);
+}
 /* ── API Spinner & Status ── */
 #api-spinner {
   position: fixed;
