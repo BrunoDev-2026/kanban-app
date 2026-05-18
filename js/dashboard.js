@@ -86,6 +86,9 @@ function drawDashboardUI(m, state, container) {
       <button class="btn-icon btn-ghost" id="shareMetricsBtn" title="Compartilhar produtividade">
         <i data-lucide="share-2"></i> Compartilhar
       </button>
+      <button class="btn-icon btn-ghost" id="exportDashboardBtn" title="Exportar Dashboard como Imagem">
+        <i data-lucide="download"></i> Exportar PNG
+      </button>
       <button class="btn-icon btn-ghost" id="syncMetricsBtn" title="Atualizar métricas agora">
         <i data-lucide="refresh-cw"></i> Sincronizar
       </button>
@@ -144,6 +147,8 @@ function drawDashboardUI(m, state, container) {
     }
   });
 
+  document.getElementById('exportDashboardBtn')?.addEventListener('click', exportDashboardAsImage);
+
   document.getElementById('clearConflictLogsBtn')?.addEventListener('click', () => {
     window.Sync.clearLogs();
     renderDashboard(state, container); // Re-renderiza o dashboard para atualizar a lista de logs
@@ -161,6 +166,32 @@ function initCharts(metrics, state) {
   const ctxPriority = document.getElementById('chartPriority')?.getContext('2d');
   const ctxBottleneck = document.getElementById('chartBottleneck')?.getContext('2d');
 
+  // Helper para obter variáveis CSS do tema atual
+  const getStyle = (v) => getComputedStyle(document.body).getPropertyValue(v).trim();
+  
+  const textColor = getStyle('--text-secondary') || '#94a3b8';
+  const borderColor = getStyle('--border-color') || 'rgba(255,255,255,0.1)';
+  const accentColor = getStyle('--accent') || '#2563EB';
+  
+  // Cores de prioridade extraídas dos tokens do sistema
+  const dangerColor = getStyle('--danger') || '#EF4444';
+  const warningColor = getStyle('--warning') || '#F59E0B';
+  const successColor = getStyle('--success') || '#10B981';
+
+  // Configuração Global do Chart.js para respeitar o tema
+  Chart.defaults.color = textColor;
+  Chart.defaults.borderColor = borderColor;
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+  // Configuração de animação compartilhada
+  const baseAnimation = {
+    duration: 1200,
+    easing: 'easeOutQuart',
+    delay: (context) => {
+      return context.dataIndex * 150; // Efeito Stagger (um por um)
+    }
+  };
+
   if (ctxHistory) {
     charts.history = new Chart(ctxHistory, {
       type: 'bar',
@@ -169,14 +200,19 @@ function initCharts(metrics, state) {
         datasets: [{
           label: 'Tarefas Concluídas',
           data: metrics.weekHistory.map(d => d.value),
-          backgroundColor: '#7C3AED',
+          backgroundColor: accentColor,
           borderRadius: 4
         }]
       },
-      options: { 
+      options: {
         responsive: true, 
         maintainAspectRatio: false, // Permite respeitar a altura fixa do container
-        plugins: { legend: { display: false } } 
+        plugins: { legend: { display: false } },
+        animation: baseAnimation,
+        scales: {
+          x: { grid: { display: false }, ticks: { color: textColor } },
+          y: { grid: { color: borderColor }, ticks: { color: textColor, stepSize: 1 } }
+        }
       }
     });
   }
@@ -190,7 +226,7 @@ function initCharts(metrics, state) {
         labels: ['Alta', 'Média', 'Baixa'],
         datasets: [{
           data: [p.high, p.medium, p.low],
-          backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+          backgroundColor: [dangerColor, warningColor, successColor],
           borderWidth: 0
         }]
       },
@@ -198,6 +234,7 @@ function initCharts(metrics, state) {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '70%', 
+        animation: { ...baseAnimation, delay: 500 }, // Atraso fixo para o doughnut
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } 
       }
     });
@@ -219,9 +256,46 @@ function initCharts(metrics, state) {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y', 
-        plugins: { legend: { display: false } } 
+        plugins: { legend: { display: false } },
+        animation: baseAnimation,
+        scales: {
+          x: { grid: { color: borderColor }, ticks: { color: textColor, stepSize: 1 } },
+          y: { grid: { display: false }, ticks: { color: textColor } }
+        }
       }
     });
+  }
+}
+
+/**
+ * Exporta o Dashboard como uma imagem PNG de alta qualidade
+ */
+async function exportDashboardAsImage() {
+  const container = document.getElementById('dashboardSection');
+  if (!container || typeof html2canvas === 'undefined') {
+    showToast('❌ Erro: Biblioteca de exportação não carregada.');
+    return;
+  }
+
+  showToast('📸 Gerando imagem...');
+
+  try {
+    const canvas = await html2canvas(container, {
+      backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-primary'),
+      scale: 2, // Dobra a resolução para ficar nítido
+      logging: false,
+      useCORS: true
+    });
+
+    const link = document.createElement('a');
+    link.download = `MB-FlowBoard-Metrics-${getTodayISO()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    showToast('✅ Dashboard exportado!');
+  } catch (err) {
+    console.error('Falha na exportação:', err);
+    showToast('❌ Erro ao exportar imagem.');
   }
 }
 

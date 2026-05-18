@@ -228,10 +228,9 @@ function updateThemeIcon(theme) {
   if (!themeBtn) return;
   
   const isDark = theme === THEMES.DARK;
-  themeBtn.innerHTML = isDark ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
+  themeBtn.innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
   themeBtn.title = isDark ? 'Alternar para Tema Claro' : 'Alternar para Tema Escuro';
-  
-  // Atualiza meta tag theme-color para mobile/PWA
+
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111317' : '#f8fafc');
   
@@ -241,25 +240,21 @@ function updateThemeIcon(theme) {
 function toggleTheme() {
   const isDark = document.body.classList.contains(THEMES.DARK);
   const nextTheme = isDark ? THEMES.LIGHT : THEMES.DARK;
-
-  document.body.classList.remove(THEMES.DARK, THEMES.LIGHT);
-  document.body.classList.add(nextTheme);
-
-  if (typeof saveTheme === 'function') {
-    saveTheme(nextTheme);
-  } else {
-    localStorage.setItem('mb_theme', nextTheme);
-  }
-
-  updateThemeIcon(nextTheme);
-  showToast(isDark ? '☀️ Tema Claro Ativado' : '🌙 Tema Escuro Ativado');
+  applyTheme(nextTheme);
+  showToast(nextTheme === THEMES.LIGHT ? '☀️ Tema Claro Ativado' : '🌙 Tema Escuro Ativado');
 }
 
 function applyTheme(name) {
   const theme = (name === THEMES.LIGHT || name === THEMES.DARK) ? name : THEMES.DARK;
   document.body.classList.remove(THEMES.DARK, THEMES.LIGHT);
   document.body.classList.add(theme);
+  localStorage.setItem('kanban-theme', theme);
   updateThemeIcon(theme);
+
+  // Se o dashboard estiver visível, força o re-render para atualizar os gráficos com as novas cores
+  if (showDashboard) {
+    renderDashboard(state, document.getElementById('dashboardSection'));
+  }
 }
 
 /**
@@ -423,10 +418,12 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="column-title-wrap"><span class="column-title">'+escapeHtml(col.title)+'</span>'+
     '<span class="column-count">'+col.cards.length+(col.limit>0?' / '+col.limit:'')+'</span></div>'+
     '<div class="column-actions">'+
+    '<button class="col-btn column-add-task-btn" data-column-id="'+col.id+'" title="Adicionar tarefa" aria-label="Adicionar tarefa"><i data-lucide="plus" size="14"></i></button>'+
     '<button class="col-btn edit" data-col="'+col.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
     '<button class="col-btn delete" data-col="'+col.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
     '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+
     (col.limit>0?'<div class="column-progress-container"><div class="column-progress-bar" style="width:'+progress+'%;background:'+(exceeded?'var(--accent2)':col.color)+'"></div></div>':'')+
+    '<div class="quick-add-wrapper"><input type="text" class="quick-add-input" placeholder="+ Adicionar tarefa rápida..." data-col-id="'+col.id+'" maxlength="80"></div>'+
     '<div class="cards-area" data-col-id="'+col.id+'" role="list">'+
     col.cards.map(c=>buildCardHTML(c,isDone,hasPrev,hasNext)).join('')+ // Cards
     '<button class="add-card-btn" data-col="'+col.id+'">'+
@@ -672,6 +669,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Delegacao de eventos do board
     document.getElementById('board').addEventListener('click', async e => {
+      // ── ADICIONAR TAREFA NA COLUNA ──
+      const addColTaskBtn = e.target.closest('.column-add-task-btn');
+      if (addColTaskBtn) {
+        e.stopPropagation(); // Evita interferência com DnD ou outros eventos da coluna
+        const colId = addColTaskBtn.dataset.columnId;
+        if (colId) openCardModal(colId, null, state);
+        return;
+      }
+
       const focBtn=e.target.closest('.card-btn.focus');
       
       // ── RESOLVER CONFLITO ──
@@ -751,6 +757,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(!col)return;
         cardEl.classList.add('card-exit');
         setTimeout(()=>archiveCard(col.id,cardId,state,render,stopPomodoro),280);
+      }
+    });
+
+    // Delegacao de evento para Adicao Rapida (Enter no input inline)
+    document.getElementById('board').addEventListener('keydown', e => {
+      const input = e.target.closest('.quick-add-input');
+      if (input && e.key === 'Enter') {
+        const title = input.value.trim();
+        const colId = input.dataset.colId;
+        if (!title) return;
+
+        const col = state.columns.find(c => c.id === colId);
+        if (!col) return;
+
+        const newCard = {
+          id: uid(),
+          title,
+          desc: '',
+          priority: 'low',
+          date: '',
+          tags: [],
+          checklist: [],
+          totalFocusTime: 0,
+          createdAt: new Date().toISOString()
+        };
+
+        col.cards.unshift(newCard); // Adiciona ao topo
+        saveMetadata();
+        render();
+
+        // Mantem o foco no input da mesma coluna apos o re-render
+        setTimeout(() => {
+          const newInput = document.querySelector(`.quick-add-input[data-col-id="${colId}"]`);
+          if (newInput) newInput.focus();
+        }, 50);
+
+        // Sincronizacao
+        window.Sync.enqueue({
+          method: 'PUT',
+          id: newCard.id,
+          payload: { titulo: newCard.title, coluna: col.title, desc: '', priority: 'low', date: '', tags: [], checklist: [] }
+        });
+        showToast('🚀 Tarefa adicionada!');
       }
     });
 

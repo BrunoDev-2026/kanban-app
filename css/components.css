@@ -733,3 +733,54 @@ body.focus-mode-active .board-container {
   width: 0%;
   transition: width 0.4s ease;
 }
+
+/* ── Botão Adicionar Tarefa na Coluna (Premium) ── */
+.column-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px; 
+}
+
+.column-add-task-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px; /* Design moderno */
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.column-add-task-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
+  color: var(--accent-light);
+}
+
+.column-add-task-btn:active {
+  transform: scale(0.94);
+}
+
+.column-add-task-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+body.theme-light .column-add-task-btn {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 768px) {
+  .column-add-task-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
