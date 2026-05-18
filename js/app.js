@@ -455,11 +455,6 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     openConfirm(msg,()=>{state.columns=state.columns.filter(c=>c.id!==col.id);saveMetadata();render();showToast('🗑️ Coluna excluida.');});
   });
   
-  // Listener unificado para os botões .add-task-button
-  el.querySelectorAll('.add-task-button').forEach(btn => {
-    btn.addEventListener('click', () => openCardModal(col.id, null, state));
-  });
-  
   return el;
 }
 
