@@ -398,19 +398,19 @@ body.theme-neon .card:hover {
   white-space: nowrap;
 }
 .card-due-badge.overdue {
-  background: rgba(239, 68, 68, 0.15);
+  background: color-mix(in srgb, var(--accent2), transparent 85%);
   color: var(--accent2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent2), transparent 70%);
 }
 .card-due-badge.due-today {
-  background: rgba(245, 158, 11, 0.15);
+  background: color-mix(in srgb, var(--accent-amber), transparent 85%);
   color: var(--accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-amber), transparent 70%);
 }
 .card-due-badge.due-soon {
-  background: rgba(245, 158, 11, 0.08);
+  background: color-mix(in srgb, var(--accent-amber), transparent 92%);
   color: var(--accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid color-mix(in srgb, var(--accent-amber), transparent 80%);
 }
 
 .card-desc {

@@ -89,6 +89,21 @@ body.theme-dark {
   --dropdown-bg:  rgba(18, 18, 34, 0.98);
 }
 
+/* 👔 Tema Claro (Ajuste de Contraste para Prioridades) */
+body.theme-light {
+  --bg-base:        #f8fafc;
+  --bg-deep:        #f1f5f9;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --title-color:    #1e293b;
+  
+  /* Cores de prioridade ajustadas para contraste AA/AAA em fundo branco/claro */
+  --accent2:        #B91C1C; /* Vermelho Profundo */
+  --accent3:        #047857; /* Verde Esmeralda Escuro */
+  --accent-amber:   #B45309; /* Ocre/Âmbar Escuro */
+}
+
 /* ── Noise overlay (textura premium) ── */
 body::before {
   content: "";

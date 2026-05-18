@@ -25,6 +25,10 @@ function initShortcuts(state, renderFn, openCardFn, saveStateFn, undoFn, redoFn,
       if (openModal) {
         ['columnModal', 'cardModal', 'confirmModal', 'emojiModal', 'archiveModal', 'profileModal']
           .forEach(id => closeModal(id));
+      } else if (document.querySelector('.dropdown.open')) {
+        // Fecha qualquer dropdown aberto (como o de tarefas ou o de 'mais')
+        document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+        showShortcutHUD('Menu Fechado (Esc)');
       } else if (appFilters && typeof hasActiveFilters === 'function' && hasActiveFilters(appFilters)) {
         // Se não houver modal aberto e houver filtros ativos, limpa tudo
         clearFilters(appFilters, renderFn);

@@ -18,6 +18,11 @@ let dragColSrcId    = null;
 let currentView     = 'board';
 let showDashboard   = false;
 
+const THEMES = {
+  DARK: 'theme-dark',
+  LIGHT: 'theme-light'
+};
+
 const appFilters = { searchTerm: '', priority: 'all', tag: 'all', exactDateFilter: '' };
 
 /* ════════ COLUNAS PADRÃO ════════ */
@@ -217,20 +222,44 @@ window._revertDelete = function(card, colId) {
   }
 };
 
-/* ════════ THEME ENGINE ════════ */
-function applyTheme(name) {
-  const themeClass = (name === 'theme-light' || name === 'theme-dark') ? name : 'theme-dark';
-  document.body.className = themeClass;
-  if (typeof saveTheme === 'function') saveTheme(name);
+/* ════════ SISTEMA DE TEMA ROBUSTO ════════ */
+function updateThemeIcon(theme) {
+  const themeBtn = document.getElementById('themeToggleBtn');
+  if (!themeBtn) return;
+  
+  const isDark = theme === THEMES.DARK;
+  themeBtn.innerHTML = isDark ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
+  themeBtn.title = isDark ? 'Alternar para Tema Claro' : 'Alternar para Tema Escuro';
+  
+  // Atualiza meta tag theme-color para mobile/PWA
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111317' : '#f8fafc');
+  
+  lucide.createIcons();
 }
 
-/**
- * Alterna entre tema claro e escuro
- */
 function toggleTheme() {
-  const isDark = document.body.classList.contains('theme-dark');
-  applyTheme(isDark ? 'theme-light' : 'theme-dark');
-  showToast(isDark ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado');
+  const isDark = document.body.classList.contains(THEMES.DARK);
+  const nextTheme = isDark ? THEMES.LIGHT : THEMES.DARK;
+
+  document.body.classList.remove(THEMES.DARK, THEMES.LIGHT);
+  document.body.classList.add(nextTheme);
+
+  if (typeof saveTheme === 'function') {
+    saveTheme(nextTheme);
+  } else {
+    localStorage.setItem('mb_theme', nextTheme);
+  }
+
+  updateThemeIcon(nextTheme);
+  showToast(isDark ? '☀️ Tema Claro Ativado' : '🌙 Tema Escuro Ativado');
+}
+
+function applyTheme(name) {
+  const theme = (name === THEMES.LIGHT || name === THEMES.DARK) ? name : THEMES.DARK;
+  document.body.classList.remove(THEMES.DARK, THEMES.LIGHT);
+  document.body.classList.add(theme);
+  updateThemeIcon(theme);
 }
 
 /**
@@ -243,8 +272,8 @@ function toggleView() {
 }
 
 // Exposição global segura (nunca lança ReferenceError)
-window.toggleView  = toggleView;
-window.toggleTheme = toggleTheme;
+if (typeof toggleTheme === 'function') window.toggleTheme = toggleTheme;
+if (typeof toggleView === 'function') window.toggleView = toggleView;
 
 /* ════════ POMODORO ════════ */
 let activeFocusCardId=null, pomodoroInterval=null, tabFlashInterval=null;
@@ -506,11 +535,26 @@ function openArchiveModal(){
 /* ════════ INICIALIZACAO ════════ */
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    applyTheme(loadTheme());
+    const savedTheme = typeof loadTheme === 'function' ? loadTheme() : localStorage.getItem('mb_theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    } else {
+      // Se não houver tema salvo, detecta preferência do sistema
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      applyTheme(prefersLight ? THEMES.LIGHT : THEMES.DARK);
+    }
 
-    const _themeBtn = document.getElementById('themeToggleBtn');
-    if (_themeBtn) {
-      _themeBtn.addEventListener('click', window.toggleTheme);
+    // Listener para mudanças no tema do sistema operacional
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      // Só altera automaticamente se o usuário não tiver definido uma preferência manual
+      if (!localStorage.getItem('mb_theme')) {
+        applyTheme(e.matches ? THEMES.DARK : THEMES.LIGHT);
+      }
+    });
+
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn && typeof toggleTheme === 'function') {
+      themeBtn.addEventListener('click', toggleTheme);
     }
 
     initFilters(state,appFilters,render);

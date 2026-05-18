@@ -8,7 +8,7 @@
 
 /** Chave principal do localStorage */
 const STORAGE_KEY = 'kanflow_state';
-const STORAGE_THEME_KEY = 'kanflow_theme';
+const STORAGE_THEME_KEY = 'mb_theme';
 // compat: alguns fluxos legados usam canflow_state/kanflow_theme
 
 
@@ -192,7 +192,7 @@ function updateSaveStatus(status) {
  * @returns {string} Nome do tema
  */
 function loadTheme() {
-  return localStorage.getItem(STORAGE_THEME_KEY) || 'theme-dark';
+  return localStorage.getItem(STORAGE_THEME_KEY);
 }
 
 /**
