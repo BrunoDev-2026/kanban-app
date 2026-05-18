@@ -418,7 +418,7 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="column-title-wrap"><span class="column-title">'+escapeHtml(col.title)+'</span>'+
     '<span class="column-count">'+col.cards.length+(col.limit>0?' / '+col.limit:'')+'</span></div>'+
     '<div class="column-actions">'+
-    '<button class="col-btn column-add-task-btn" data-column-id="'+col.id+'" title="Adicionar tarefa" aria-label="Adicionar tarefa"><i data-lucide="plus" size="14"></i></button>'+
+    renderAddTaskButton(col.id, true) +
     '<button class="col-btn edit" data-col="'+col.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
     '<button class="col-btn delete" data-col="'+col.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
     '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+

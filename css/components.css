@@ -792,3 +792,17 @@ body.theme-light .add-task-button {
 @media (max-width: 768px) {
   .add-task-button { height: 44px; }
 }
+
+/* ── Botão em estado de carregamento (Spinner) ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-loading .lucide {
+  animation: spin 1s linear infinite !important;
+}

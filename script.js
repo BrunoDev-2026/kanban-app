@@ -286,26 +286,26 @@ async function handleApiResponse(res) {
   return res.json();
 }
 
-async function apiGetTarefas(retries = 5, delay = 4000) {
-  setLoading(true, 'Conectando ao servidor...');
+async function apiGetTarefas(retries = 5, delay = 4000, btn = null) {
+  setLoading(true, 'Conectando ao servidor...', btn);
   try {
     const res = await fetch(API_URL);
     const data = await handleApiResponse(res);
-    setLoading(false);
+    setLoading(false, '', btn);
     return data;
   } catch (err) {
     if (retries > 0) {
-      setLoading(true, `Servidor acordando... (${retries} tentativas restantes)`);
+      setLoading(true, `Servidor acordando... (${retries} tentativas restantes)`, btn);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return apiGetTarefas(retries - 1, delay);
+      return apiGetTarefas(retries - 1, delay, btn);
     }
-    setLoading(false);
+    setLoading(false, '', btn);
     throw err;
   }
 }
 
-async function apiCreateTarefa(payload) {
-  setLoading(true);
+async function apiCreateTarefa(payload, btn = null) {
+  setLoading(true, 'Salvando...', btn);
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -314,12 +314,12 @@ async function apiCreateTarefa(payload) {
     });
     return await handleApiResponse(res);
   } finally {
-    setLoading(false);
+    setLoading(false, '', btn);
   }
 }
 
-async function apiUpdateTarefa({ id, ...payload }) {
-  setLoading(true);
+async function apiUpdateTarefa({ id, ...payload }, btn = null) {
+  setLoading(true, 'Atualizando...', btn);
   try {
     const res = await fetch(apiUrlForId(id), {
       method: 'PUT',
@@ -328,7 +328,7 @@ async function apiUpdateTarefa({ id, ...payload }) {
     });
     return await handleApiResponse(res);
   } finally {
-    setLoading(false);
+    setLoading(false, '', btn);
   }
 }
 
@@ -343,7 +343,7 @@ async function apiDeleteTarefa(id) {
 /**
  * Controla o estado visual de carregamento
  */
-function setLoading(isLoading, message = 'Carregando...') {
+function setLoading(isLoading, message = 'Carregando...', btn = null) {
   let spinner = document.getElementById('api-spinner');
   if (!spinner) {
     spinner = document.createElement('div');
@@ -357,8 +357,25 @@ function setLoading(isLoading, message = 'Carregando...') {
 
   if (isLoading) {
     spinner.classList.add('active');
+    if (btn) {
+      btn.classList.add('btn-loading');
+      const icon = btn.querySelector('.lucide') || btn.querySelector('i');
+      if (icon) {
+        btn._oldIcon = icon.getAttribute('data-lucide');
+        icon.setAttribute('data-lucide', 'loader-2');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
   } else {
     spinner.classList.remove('active');
+    if (btn) {
+      btn.classList.remove('btn-loading');
+      const icon = btn.querySelector('.lucide') || btn.querySelector('i');
+      if (icon && btn._oldIcon) {
+        icon.setAttribute('data-lucide', btn._oldIcon);
+        if (window.lucide) lucide.createIcons();
+      }
+    }
   }
 }
 
@@ -1330,6 +1347,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
 
   if (editingCardId) {
     // Atualização via API (somente campos aceitos pelo backend do exemplo)
+    const btn = document.getElementById('saveCardBtn');
     try {
       const updated = await apiUpdateTarefa({ // Usando apiUpdateTarefa
         id: editingCardId,
@@ -1340,7 +1358,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         priority: selectedPriority,
         tags: tags,
         checklist: tempChecklist
-      });
+      }, btn);
       const card = col.cards.find(k => k.id === editingCardId);
       if (card) {
         card.title    = title;
@@ -1358,6 +1376,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
       return;
     }
   } else {
+    const btn = document.getElementById('saveCardBtn');
     try { // Usando apiCreateTarefa
       const created = await apiCreateTarefa({
         titulo: title,
@@ -1367,7 +1386,7 @@ document.getElementById('saveCardBtn').addEventListener('click', async () => {
         priority: selectedPriority,
         tags: tags,
         checklist: tempChecklist
-      });
+      }, btn);
       const newId = created && (created._id || created.id);
       col.cards.push({
         id: newId ? String(newId) : uid(),
