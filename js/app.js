@@ -426,12 +426,8 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="quick-add-wrapper"><input type="text" class="quick-add-input" placeholder="+ Adicionar tarefa rápida..." data-col-id="'+col.id+'" maxlength="80"></div>'+
     '<div class="cards-area" data-col-id="'+col.id+'" role="list">'+
     col.cards.map(c=>buildCardHTML(c,isDone,hasPrev,hasNext)).join('')+ // Cards
-    '<button class="add-card-btn" data-col="'+col.id+'">'+
-    (isEmpty 
-      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>' 
-      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>') +
-    ' Adicionar tarefa</button>'+ // Button
-    '</div>'; // Close cards-area
+    '</div>' +
+    '<div style="padding: 0 12px 12px;">' + renderAddTaskButton(col.id, false) + '</div>'; // Close column container
 
 // DnD centralizado: initDragDropArea desativado aqui para evitar duplicidade com js/dragdrop.js
 // initDragDropArea(el.querySelector('.cards-area'), state, render);
@@ -458,7 +454,12 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     const msg=col.cards.length>0?'Excluir "'+col.title+'" e '+col.cards.length+' tarefa(s)?':'Excluir "'+col.title+'"?';
     openConfirm(msg,()=>{state.columns=state.columns.filter(c=>c.id!==col.id);saveMetadata();render();showToast('🗑️ Coluna excluida.');});
   });
-  el.querySelector('.add-card-btn').addEventListener('click',()=>openCardModal(col.id,null,state));
+  
+  // Listener unificado para os botões .add-task-button
+  el.querySelectorAll('.add-task-button').forEach(btn => {
+    btn.addEventListener('click', () => openCardModal(col.id, null, state));
+  });
+  
   return el;
 }
 
@@ -670,7 +671,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Delegacao de eventos do board
     document.getElementById('board').addEventListener('click', async e => {
       // ── ADICIONAR TAREFA NA COLUNA ──
-      const addColTaskBtn = e.target.closest('.column-add-task-btn');
+      const addColTaskBtn = e.target.closest('.add-task-button');
       if (addColTaskBtn) {
         e.stopPropagation(); // Evita interferência com DnD ou outros eventos da coluna
         const colId = addColTaskBtn.dataset.columnId;
