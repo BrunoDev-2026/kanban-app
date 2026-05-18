@@ -248,8 +248,11 @@ function applyTheme(name) {
   const theme = (name === THEMES.LIGHT || name === THEMES.DARK) ? name : THEMES.DARK;
   document.body.classList.remove(THEMES.DARK, THEMES.LIGHT);
   document.body.classList.add(theme);
+  // Compat: alguns fluxos legados usam outros nomes de chave
   localStorage.setItem('kanban-theme', theme);
+  localStorage.setItem('mb_theme', theme);
   updateThemeIcon(theme);
+
 
   // Se o dashboard estiver visível, força o re-render para atualizar os gráficos com as novas cores
   if (showDashboard) {
@@ -418,12 +421,12 @@ function buildColumn(col,isDone,hasPrev,hasNext){
     '<div class="column-title-wrap"><span class="column-title">'+escapeHtml(col.title)+'</span>'+
     '<span class="column-count">'+col.cards.length+(col.limit>0?' / '+col.limit:'')+'</span></div>'+
     '<div class="column-actions">'+
-    '<button class="col-btn add-task" data-col="'+col.id+'" title="Adicionar tarefa" aria-label="Adicionar tarefa">'+
+      '<button class="col-btn add-task-button" data-col="'+col.id+'" title="Adicionar tarefa" aria-label="Adicionar tarefa">'+
       '<i data-lucide="plus" size="14"></i>'+
-    '</button>' +
-    '<button class="col-btn edit" data-col="'+col.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
-    '<button class="col-btn delete" data-col="'+col.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
-    '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+
+      '</button>' +
+      '<button class="col-btn edit" data-col="'+col.id+'" title="Editar"><i data-lucide="pencil" size="14"></i></button>'+
+      '<button class="col-btn delete" data-col="'+col.id+'" title="Excluir"><i data-lucide="trash-2" size="14"></i></button>'+
+      '</div><div class="column-header-accent" style="background:'+col.color+'"></div></div>'+
     (col.limit>0?'<div class="column-progress-container"><div class="column-progress-bar" style="width:'+progress+'%;background:'+(exceeded?'var(--accent2)':col.color)+'"></div></div>':'')+
     '<div class="quick-add-wrapper"><input type="text" class="quick-add-input" placeholder="+ Adicionar tarefa rápida..." data-col-id="'+col.id+'" maxlength="80"></div>'+
     '<div class="cards-area" data-col-id="'+col.id+'" role="list">'+
@@ -675,11 +678,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       // ── ADICIONAR TAREFA NA COLUNA ──
       const addColTaskBtn = e.target.closest('.add-task-button');
       if (addColTaskBtn) {
-        e.stopPropagation(); // Evita interferência com DnD ou outros eventos da coluna
-        const colId = addColTaskBtn.dataset.columnId;
+        e.stopPropagation();
+        // Compat: botões usam atributos diferentes dependendo da versão do HTML
+        const colId = addColTaskBtn.dataset.columnId || addColTaskBtn.dataset.col;
         if (colId) openCardModal(colId, null, state);
         return;
       }
+
 
       const focBtn=e.target.closest('.card-btn.focus');
       
